@@ -274,10 +274,29 @@ get_icon_for_media (GrlMedia *media)
 static GList *
 browse_keys (void)
 {
-  return grl_metadata_key_list_new (GRL_METADATA_KEY_ID,
-                                    GRL_METADATA_KEY_TITLE,
-                                    GRL_METADATA_KEY_CHILDCOUNT,
-                                    NULL);
+  GList *list = NULL;
+
+  if (!list) {
+    list = grl_metadata_key_list_new (GRL_METADATA_KEY_ID,
+                                      GRL_METADATA_KEY_TITLE,
+                                      GRL_METADATA_KEY_CHILDCOUNT,
+                                      NULL);
+  }
+
+  return list;
+}
+
+static GList *
+sort_keys (void)
+{
+  GList *list = NULL;
+
+  if (!list) {
+    list = grl_metadata_key_list_new (GRL_METADATA_KEY_TITLE,
+                                      NULL);
+  }
+
+  return list;
 }
 
 static GList *
@@ -542,6 +561,7 @@ browse_cb (GrlMediaSource *source,
 	  grl_media_source_browse (source,
                                    ui_state->cur_container,
                                    browse_keys (),
+                                   sort_keys (),
                                    state->offset, BROWSE_CHUNK_SIZE,
                                    BROWSE_FLAGS,
                                    browse_cb,
@@ -578,6 +598,7 @@ browse (GrlMediaSource *source, GrlMedia *container)
     browse_id = grl_media_source_browse (source,
                                          container,
                                          browse_keys (),
+                                         sort_keys (),
                                          0, BROWSE_CHUNK_SIZE,
                                          BROWSE_FLAGS,
                                          browse_cb,
@@ -991,6 +1012,7 @@ search_cb (GrlMediaSource *source,
 	grl_media_source_search (source,
                                  state->text,
                                  browse_keys (),
+                                 sort_keys (),
                                  state->offset, BROWSE_CHUNK_SIZE,
                                  BROWSE_FLAGS,
                                  search_cb,
@@ -1026,6 +1048,7 @@ search (GrlMediaSource *source, const gchar *text)
     search_id = grl_media_source_search (source,
 					 text,
 					 browse_keys (),
+                                         sort_keys (),
 					 0, BROWSE_CHUNK_SIZE,
 					 BROWSE_FLAGS,
 					 search_cb,
@@ -1080,6 +1103,7 @@ query (GrlMediaSource *source, const gchar *text)
   query_id = grl_media_source_query (source,
                                      text,
                                      browse_keys (),
+                                     sort_keys (),
                                      0, BROWSE_CHUNK_SIZE,
                                      BROWSE_FLAGS,
                                      search_cb,

@@ -406,6 +406,7 @@ free_browse_operation_spec (GrlMediaSourceBrowseSpec *spec)
   g_object_unref (spec->source);
   g_object_unref (spec->container);
   g_list_free (spec->keys);
+  g_list_free (spec->sort);
   g_free (spec);
 }
 
@@ -416,6 +417,7 @@ free_search_operation_spec (GrlMediaSourceSearchSpec *spec)
   g_object_unref (spec->source);
   g_free (spec->text);
   g_list_free (spec->keys);
+  g_list_free (spec->sort);
   g_free (spec);
 }
 
@@ -426,6 +428,7 @@ free_query_operation_spec (GrlMediaSourceQuerySpec *spec)
   g_object_unref (spec->source);
   g_free (spec->query);
   g_list_free (spec->keys);
+  g_list_free (spec->sort);
   g_free (spec);
 }
 
@@ -1098,6 +1101,7 @@ metadata_full_resolution_ctl_cb (GrlMediaSource *source,
  * @source: a media source
  * @container: a container of data transfer objects
  * @keys: the list of #GrlKeyID to request
+ * @sort: the list of #GrlKeyID used to sort results
  * @skip: the number if elements to skip in the browse operation
  * @count: the number of elements to retrieve in the browse operation
  * @flags: the resolution mode
@@ -1114,6 +1118,7 @@ guint
 grl_media_source_browse (GrlMediaSource *source,
                          GrlMedia *container,
                          const GList *keys,
+                         const GList *sort,
                          guint skip,
                          guint count,
                          GrlMetadataResolutionFlags flags,
@@ -1123,6 +1128,7 @@ grl_media_source_browse (GrlMediaSource *source,
   GrlMediaSourceResultCb _callback;
   gpointer _user_data ;
   GList *_keys;
+  GList *_sort;
   struct SourceKeyMapList key_mapping;
   GrlMediaSourceBrowseSpec *bs;
   guint browse_id;
@@ -1138,6 +1144,7 @@ grl_media_source_browse (GrlMediaSource *source,
 
   /* By default assume we will use the parameters specified by the user */
   _keys = g_list_copy ((GList *) keys);
+  _sort = g_list_copy ((GList *) sort);
   _callback = callback;
   _user_data = user_data;
 
@@ -1190,6 +1197,7 @@ grl_media_source_browse (GrlMediaSource *source,
   bs->source = g_object_ref (source);
   bs->browse_id = browse_id;
   bs->keys = _keys;
+  bs->sort = _sort;
   bs->skip = skip;
   bs->count = count;
   bs->flags = flags;
@@ -1236,6 +1244,7 @@ grl_media_source_browse (GrlMediaSource *source,
  * @keys: the list of #GrlKeyID to request
  * @skip: the number if elements to skip in the search operation
  * @count: the number of elements to retrieve in the search operation
+ * @sort: the list of #GrlKeyID used to sort results
  * @flags: the resolution mode
  * @callback: the user defined callback
  * @user_data: the user data to pass in the callback
@@ -1251,6 +1260,7 @@ guint
 grl_media_source_search (GrlMediaSource *source,
                          const gchar *text,
                          const GList *keys,
+                         const GList *sort,
                          guint skip,
                          guint count,
                          GrlMetadataResolutionFlags flags,
@@ -1260,6 +1270,7 @@ grl_media_source_search (GrlMediaSource *source,
   GrlMediaSourceResultCb _callback;
   gpointer _user_data ;
   GList *_keys;
+  GList *_sort;
   struct SourceKeyMapList key_mapping;
   GrlMediaSourceSearchSpec *ss;
   guint search_id;
@@ -1278,6 +1289,7 @@ grl_media_source_search (GrlMediaSource *source,
   _callback = callback;
   _user_data = user_data;
   _keys = g_list_copy ((GList *) keys);
+  _sort = g_list_copy ((GList *) sort);
 
   if (flags & GRL_RESOLVE_FAST_ONLY) {
     g_debug ("requested fast keys only");
@@ -1323,6 +1335,7 @@ grl_media_source_search (GrlMediaSource *source,
   ss->search_id = search_id;
   ss->text = g_strdup (text);
   ss->keys = _keys;
+  ss->sort = _sort;
   ss->skip = skip;
   ss->count = count;
   ss->flags = flags;
@@ -1362,6 +1375,7 @@ grl_media_source_search (GrlMediaSource *source,
  * @keys: the list of #GrlKeyID to request
  * @skip: the number if elements to skip in the query operation
  * @count: the number of elements to retrieve in the query operation
+ * @sort: the list of #GrlKeyID used to sort results
  * @flags: the resolution mode
  * @callback: the user defined callback
  * @user_data: the user data to pass in the callback
@@ -1381,6 +1395,7 @@ guint
 grl_media_source_query (GrlMediaSource *source,
                         const gchar *query,
                         const GList *keys,
+                        const GList *sort,
                         guint skip,
                         guint count,
                         GrlMetadataResolutionFlags flags,
@@ -1390,6 +1405,7 @@ grl_media_source_query (GrlMediaSource *source,
   GrlMediaSourceResultCb _callback;
   gpointer _user_data ;
   GList *_keys;
+  GList *_sort;
   struct SourceKeyMapList key_mapping;
   GrlMediaSourceQuerySpec *qs;
   guint query_id;
@@ -1408,6 +1424,7 @@ grl_media_source_query (GrlMediaSource *source,
   _callback = callback;
   _user_data = user_data;
   _keys = g_list_copy ((GList *) keys);
+  _sort = g_list_copy ((GList *) sort);
 
   if (flags & GRL_RESOLVE_FAST_ONLY) {
     g_debug ("requested fast keys only");
@@ -1455,6 +1472,7 @@ grl_media_source_query (GrlMediaSource *source,
   qs->query_id = query_id;
   qs->query = g_strdup (query);
   qs->keys = _keys;
+  qs->sort = _sort;
   qs->skip = skip;
   qs->count = count;
   qs->flags = flags;

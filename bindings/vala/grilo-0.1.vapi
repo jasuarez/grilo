@@ -92,14 +92,14 @@ namespace Grl {
 	}
 	[CCode (cheader_filename = "grilo.h")]
 	public class MediaSource : Grl.MetadataSource {
-		public virtual void browse (Grl.Media container, GLib.List keys, uint skip, uint count, Grl.MetadataResolutionFlags flags, Grl.MediaSourceResultCb callback);
+		public virtual void browse (Grl.Media container, GLib.List keys, GLib.List sort, uint skip, uint count, Grl.MetadataResolutionFlags flags, Grl.MediaSourceResultCb callback);
 		public virtual void cancel (uint operation_id);
 		public uint get_auto_split_threshold ();
 		public void* get_operation_data (uint operation_id);
 		public virtual void metadata (Grl.Media media, GLib.List keys, Grl.MetadataResolutionFlags flags, Grl.MediaSourceMetadataCb callback);
-		public virtual void query (string query, GLib.List keys, uint skip, uint count, Grl.MetadataResolutionFlags flags, Grl.MediaSourceResultCb callback);
+		public virtual void query (string query, GLib.List keys, GLib.List sort, uint skip, uint count, Grl.MetadataResolutionFlags flags, Grl.MediaSourceResultCb callback);
 		public virtual void remove (Grl.Media media, Grl.MediaSourceRemoveCb callback);
-		public virtual void search (string text, GLib.List keys, uint skip, uint count, Grl.MetadataResolutionFlags flags, Grl.MediaSourceResultCb callback);
+		public virtual void search (string text, GLib.List keys, GLib.List sort, uint skip, uint count, Grl.MetadataResolutionFlags flags, Grl.MediaSourceResultCb callback);
 		public void set_auto_split_threshold (uint threshold);
 		public void set_operation_data (uint operation_id, void* data);
 		public virtual void store (Grl.MediaBox parent, Grl.Media media, Grl.MediaSourceStoreCb callback);

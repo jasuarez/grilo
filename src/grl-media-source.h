@@ -148,6 +148,7 @@ typedef void (*GrlMediaSourceRemoveCb) (GrlMediaSource *source,
  * @browse_id: operation identifier
  * @container: a container of data transfer objects
  * @keys: the list of #GrlKeyID to request
+ * @sort: the list of #GrlKeyID used to sort results
  * @skip: the number if elements to skip in the browse operation
  * @count: the number of elements to retrieve in the browse operation
  * @flags: the resolution mode
@@ -162,6 +163,7 @@ typedef struct {
   guint browse_id;
   GrlMedia *container;
   GList *keys;
+  GList *sort;
   guint skip;
   guint count;
   GrlMetadataResolutionFlags flags;
@@ -175,6 +177,7 @@ typedef struct {
  * @search_id: operation identifier
  * @text: the text to search
  * @keys: the list of #GrlKeyID to request
+ * @sort: the list of #GrlKeyID used to sort results
  * @skip: the number if elements to skip in the browse operation
  * @count: the number of elements to retrieve in the browse operation
  * @flags: the resolution mode
@@ -189,6 +192,7 @@ typedef struct {
   guint search_id;
   gchar *text;
   GList *keys;
+  GList *sort;
   guint skip;
   guint count;
   GrlMetadataResolutionFlags flags;
@@ -202,6 +206,7 @@ typedef struct {
  * @query_id: operation identifier
  * @query: the query to process
  * @keys: the list of #GrlKeyID to request
+ * @sort: the list of #GrlKeyID used to sort results
  * @skip: the number if elements to skip in the browse operation
  * @count: the number of elements to retrieve in the browse operation
  * @flags: the resolution mode
@@ -216,6 +221,7 @@ typedef struct {
   guint query_id;
   gchar *query;
   GList *keys;
+  GList *sort;
   guint skip;
   guint count;
   GrlMetadataResolutionFlags flags;
@@ -331,6 +337,7 @@ GType grl_media_source_get_type (void);
 guint grl_media_source_browse (GrlMediaSource *source,
                                GrlMedia *container,
                                const GList *keys,
+                               const GList *sort,
                                guint skip,
                                guint count,
                                GrlMetadataResolutionFlags flags,
@@ -340,6 +347,7 @@ guint grl_media_source_browse (GrlMediaSource *source,
 guint grl_media_source_search (GrlMediaSource *source,
                                const gchar *text,
                                const GList *keys,
+                               const GList *sort,
                                guint skip,
                                guint count,
                                GrlMetadataResolutionFlags flags,
@@ -349,6 +357,7 @@ guint grl_media_source_search (GrlMediaSource *source,
 guint grl_media_source_query (GrlMediaSource *source,
                               const gchar *query,
                               const GList *keys,
+                              const GList *sort,
                               guint skip,
                               guint count,
                               GrlMetadataResolutionFlags flags,

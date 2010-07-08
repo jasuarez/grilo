@@ -433,6 +433,7 @@
 					<parameter name="source" type="GrlMediaSource*"/>
 					<parameter name="container" type="GrlMedia*"/>
 					<parameter name="keys" type="GList*"/>
+					<parameter name="sort" type="GList*"/>
 					<parameter name="skip" type="guint"/>
 					<parameter name="count" type="guint"/>
 					<parameter name="flags" type="GrlMetadataResolutionFlags"/>
@@ -477,6 +478,7 @@
 					<parameter name="source" type="GrlMediaSource*"/>
 					<parameter name="query" type="gchar*"/>
 					<parameter name="keys" type="GList*"/>
+					<parameter name="sort" type="GList*"/>
 					<parameter name="skip" type="guint"/>
 					<parameter name="count" type="guint"/>
 					<parameter name="flags" type="GrlMetadataResolutionFlags"/>
@@ -499,6 +501,7 @@
 					<parameter name="source" type="GrlMediaSource*"/>
 					<parameter name="text" type="gchar*"/>
 					<parameter name="keys" type="GList*"/>
+					<parameter name="sort" type="GList*"/>
 					<parameter name="skip" type="guint"/>
 					<parameter name="count" type="guint"/>
 					<parameter name="flags" type="GrlMetadataResolutionFlags"/>
