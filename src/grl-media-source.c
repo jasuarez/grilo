@@ -1181,6 +1181,72 @@ metadata_full_resolution_ctl_cb (GrlMediaSource *source,
 
 /* ================ API ================ */
 
+GrlMediaSourceBrowseSpec *
+grl_media_source_browse_spec_new ()
+{
+  GrlMediaSourceBrowseSpec *bs;
+
+  bs = g_new0 (GrlMediaSourceBrowseSpec, 1);
+  bs->ref_count = 1;
+
+  return bs;
+}
+
+GrlMediaSourceSearchSpec *
+grl_media_source_search_spec_new ()
+{
+  GrlMediaSourceSearchSpec *ss;
+
+  ss = g_new0 (GrlMediaSourceSearchSpec, 1);
+  ss->ref_count = 1;
+
+  return ss;
+}
+
+GrlMediaSourceQuerySpec *
+grl_media_source_query_spec_new ()
+{
+  GrlMediaSourceQuerySpec *qs;
+
+  qs = g_new0 (GrlMediaSourceQuerySpec, 1);
+  qs->ref_count = 1;
+
+  return qs;
+}
+
+GrlMediaSourceMetadataSpec *
+grl_media_source_metadata_spec_new ()
+{
+  GrlMediaSourceMetadataSpec *ms;
+
+  ms = g_new0 (GrlMediaSourceMetadataSpec, 1);
+  ms->ref_count = 1;
+
+  return ms;
+}
+
+GrlMediaSourceStoreSpec *
+grl_media_source_store_spec_new ()
+{
+  GrlMediaSourceStoreSpec *ss;
+
+  ss = g_new0 (GrlMediaSourceStoreSpec, 1);
+  ss->ref_count = 1;
+
+  return ss;
+}
+
+GrlMediaSourceRemoveSpec *
+grl_media_source_remove_spec_new ()
+{
+  GrlMediaSourceRemoveSpec *rs;
+
+  rs = g_new0 (GrlMediaSourceRemoveSpec, 1);
+  rs->ref_count = 1;
+
+  return rs;
+}
+
 /**
  * grl_media_source_browse:
  * @source: a media source

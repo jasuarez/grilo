@@ -340,6 +340,18 @@ G_BEGIN_DECLS
 
 GType grl_media_source_get_type (void);
 
+GrlMediaSourceBrowseSpec *grl_media_source_browse_spec_new (void);
+
+GrlMediaSourceSearchSpec *grl_media_source_search_spec_new (void);
+
+GrlMediaSourceQuerySpec *grl_media_source_query_spec_new (void);
+
+GrlMediaSourceMetadataSpec *grl_media_source_metadata_spec_new (void);
+
+GrlMediaSourceStoreSpec *grl_media_source_store_spec_new (void);
+
+GrlMediaSourceRemoveSpec *grl_media_source_remove_spec_new (void);
+
 guint grl_media_source_browse (GrlMediaSource *source,
                                GrlMedia *container,
                                const GList *keys,
