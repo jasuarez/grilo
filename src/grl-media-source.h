@@ -171,6 +171,26 @@ typedef struct {
   volatile gint ref_count;
 } GrlMediaSourceBrowseSpec;
 
+#define grl_media_source_browse_spec_get_source(bs)    ((bs)->source)
+#define grl_media_source_browse_spec_get_id(bs)        ((bs)->browse_id)
+#define grl_media_source_browse_spec_get_container(bs) ((bs)->container)
+#define grl_media_source_browse_spec_get_keys(bs)      ((bs)->keys)
+#define grl_media_source_browse_spec_get_skip(bs)      ((bs)->skip)
+#define grl_media_source_browse_spec_get_count(bs)     ((bs)->count)
+#define grl_media_source_browse_spec_get_flags(bs)     ((bs)->flags)
+#define grl_media_source_browse_spec_get_callback(bs)  ((bs)->callback)
+#define grl_media_source_browse_spec_get_data(bs)      ((bs)->user_data)
+
+#define grl_media_source_browse_spec_set_source(bs, _source)       ((bs)->source = g_object_ref(_source))
+#define grl_media_source_browse_spec_set_id(bs, _id)               ((bs)->browse_id = (_id))
+#define grl_media_source_browse_spec_set_container(bs, _container) ((bs)->container = g_object_ref(_container))
+#define grl_media_source_browse_spec_set_keys(bs, _keys)           ((bs)->keys = (_keys))
+#define grl_media_source_browse_spec_set_skip(bs, _skip)           ((bs)->skip = (_skip))
+#define grl_media_source_browse_spec_set_count(bs, _count)         ((bs)->count = (_count))
+#define grl_media_source_browse_spec_set_flags(bs, _flags)         ((bs)->flags = (_flags))
+#define grl_media_source_browse_spec_set_callback(bs, _callback)   ((bs)->callback = (_callback))
+#define grl_media_source_browse_spec_set_data(bs, _data)           ((bs)->user_data = (_data))
+
 /**
  * GrlMediaSourceSearchSpec:
  * @source: a media source
@@ -199,6 +219,26 @@ typedef struct {
   gpointer user_data;
   volatile gint ref_count;
 } GrlMediaSourceSearchSpec;
+
+#define grl_media_source_search_spec_get_source(ss)   ((ss)->source)
+#define grl_media_source_search_spec_get_id(ss)       ((ss)->search_id)
+#define grl_media_source_search_spec_get_text(ss)     ((ss)->text)
+#define grl_media_source_search_spec_get_keys(ss)     ((ss)->keys)
+#define grl_media_source_search_spec_get_skip(ss)     ((ss)->skip)
+#define grl_media_source_search_spec_get_count(ss)    ((ss)->count)
+#define grl_media_source_search_spec_get_flags(ss)    ((ss)->flags)
+#define grl_media_source_search_spec_get_callback(ss) ((ss)->callback)
+#define grl_media_source_search_spec_get_data(ss)     ((ss)->user_data)
+
+#define grl_media_source_search_spec_set_source(ss, _source)     ((ss)->source = g_object_ref(_source))
+#define grl_media_source_search_spec_set_id(ss, _id)             ((ss)->search_id = (_id))
+#define grl_media_source_search_spec_set_text(ss, _text)         ((ss)->text = g_strdup(_text))
+#define grl_media_source_search_spec_set_keys(ss, _keys)         ((ss)->keys = (_keys))
+#define grl_media_source_search_spec_set_skip(ss, _skip)         ((ss)->skip = (_skip))
+#define grl_media_source_search_spec_set_count(ss, _count)       ((ss)->count = (_count))
+#define grl_media_source_search_spec_set_flags(ss, _flags)       ((ss)->flags = (_flags))
+#define grl_media_source_search_spec_set_callback(ss, _callback) ((ss)->callback = (_callback))
+#define grl_media_source_search_spec_set_data(ss, _data)         ((ss)->user_data = (_data))
 
 /**
  * GrlMediaSourceQuerySpec:
@@ -229,6 +269,26 @@ typedef struct {
   volatile gint ref_count;
 } GrlMediaSourceQuerySpec;
 
+#define grl_media_source_query_spec_get_source(qs)   ((qs)->source)
+#define grl_media_source_query_spec_get_id(qs)       ((qs)->query_id)
+#define grl_media_source_query_spec_get_query(qs)    ((qs)->query)
+#define grl_media_source_query_spec_get_keys(qs)     ((qs)->keys)
+#define grl_media_source_query_spec_get_skip(qs)     ((qs)->skip)
+#define grl_media_source_query_spec_get_count(qs)    ((qs)->count)
+#define grl_media_source_query_spec_get_flags(qs)    ((qs)->flags)
+#define grl_media_source_query_spec_get_callback(qs) ((qs)->callback)
+#define grl_media_source_query_spec_get_data(qs)     ((qs)->user_data)
+
+#define grl_media_source_query_spec_set_source(qs, _source)     ((qs)->source = g_object_ref(_source))
+#define grl_media_source_query_spec_set_id(qs, _id)             ((qs)->query_id = (_id))
+#define grl_media_source_query_spec_set_query(qs, _query)       ((qs)->query = g_strdup(_query))
+#define grl_media_source_query_spec_set_keys(qs, _keys)         ((qs)->keys = (_keys))
+#define grl_media_source_query_spec_set_skip(qs, _skip)         ((qs)->skip = (_skip))
+#define grl_media_source_query_spec_set_count(qs, _count)       ((qs)->count = (_count))
+#define grl_media_source_query_spec_set_flags(qs, _flags)       ((qs)->flags = (_flags))
+#define grl_media_source_query_spec_set_callback(qs, _callback) ((qs)->callback = (_callback))
+#define grl_media_source_query_spec_set_data(qs, _data)         ((qs)->user_data = (_data))
+
 /**
  * GrlMediaSourceMetadataSpec:
  * @source: a media source
@@ -254,6 +314,20 @@ typedef struct {
   volatile gint ref_count;
 } GrlMediaSourceMetadataSpec;
 
+#define grl_media_source_metadata_spec_get_source(ms)   ((ms)->source)
+#define grl_media_source_metadata_spec_get_media(ms)    ((ms)->media)
+#define grl_media_source_metadata_spec_get_keys(ms)     ((ms)->keys)
+#define grl_media_source_metadata_spec_get_flags(ms)    ((ms)->flags)
+#define grl_media_source_metadata_spec_get_callback(ms) ((ms)->callback)
+#define grl_media_source_metadata_spec_get_data(ms)     ((ms)->user_data)
+
+#define grl_media_source_metadata_spec_set_source(ms, _source)     ((ms)->source = g_object_ref(_source))
+#define grl_media_source_metadata_spec_set_media(ms, _media)       ((ms)->media = g_object_ref(_media))
+#define grl_media_source_metadata_spec_set_keys(ms, _keys)         ((ms)->keys = (_keys))
+#define grl_media_source_metadata_spec_set_flags(ms, _flags)       ((ms)->flags = (_flags))
+#define grl_media_source_metadata_spec_set_callback(ms, _callback) ((ms)->callback = (_callback))
+#define grl_media_source_metadata_spec_set_data(ms, _data)         ((ms)->user_data = (_data))
+
 /**
  * GrlMediaSourceStoreSpec:
  * @source: a media source
@@ -275,6 +349,18 @@ typedef struct {
   volatile gint ref_count;
 } GrlMediaSourceStoreSpec;
 
+#define grl_media_source_store_spec_get_source(ss)   ((ss)->source)
+#define grl_media_source_store_spec_get_parent(ss)   ((ss)->parent)
+#define grl_media_source_store_spec_get_media(ss)    ((ss)->media)
+#define grl_media_source_store_spec_get_callback(ss) ((ss)->callback)
+#define grl_media_source_store_spec_get_data(ss)     ((ss)->user_data)
+
+#define grl_media_source_store_spec_set_source(ss, _source)     ((ss)->source = g_object_ref(_source))
+#define grl_media_source_store_spec_set_parent(ss, _parent)     ((ss)->parent = (_parent)?g_object_ref(_parent):NULL)
+#define grl_media_source_store_spec_set_media(ss, _media)       ((ss)->media = g_object_ref(_media))
+#define grl_media_source_store_spec_set_callback(ss, _callback) ((ss)->callback = (_callback))
+#define grl_media_source_store_spec_set_data(ss, _data)         ((ss)->user_data = (_data))
+
 /**
  * GrlMediaSourceRemoveSpec:
  * @source: a media source
@@ -295,6 +381,18 @@ typedef struct {
   gpointer user_data;
   volatile gint ref_count;
 } GrlMediaSourceRemoveSpec;
+
+#define grl_media_source_remove_spec_get_source(rs)   ((rs)->source)
+#define grl_media_source_remove_spec_get_media_id(rs) ((rs)->media_id)
+#define grl_media_source_remove_spec_get_media(rs)    ((rs)->media)
+#define grl_media_source_remove_spec_get_callback(rs) ((rs)->callback)
+#define grl_media_source_remove_spec_get_data(rs)     ((rs)->user_data)
+
+#define grl_media_source_remove_spec_set_source(rs, _source)     ((rs)->source = g_object_ref(_source))
+#define grl_media_source_remove_spec_set_media_id(rs, _media_id) ((rs)->media_id = g_strdup(_media_id))
+#define grl_media_source_remove_spec_set_media(rs, _media)       ((rs)->media = g_object_ref(_media))
+#define grl_media_source_remove_spec_set_callback(rs, _callback) ((rs)->callback = (_callback))
+#define grl_media_source_remove_spec_set_data(rs, _data)         ((rs)->user_data = (_data))
 
 /* GrlMediaSource class */
 
