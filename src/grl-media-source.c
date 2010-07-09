@@ -1313,6 +1313,123 @@ grl_media_source_remove_spec_ref (GrlMediaSourceRemoveSpec *rs)
   return rs;
 }
 
+void
+grl_media_source_browse_spec_unref (GrlMediaSourceBrowseSpec *bs)
+{
+  g_return_if_fail (bs);
+  g_return_if_fail (bs->ref_count > 0);
+
+  if (g_atomic_int_dec_and_test (&bs->ref_count)) {
+    if (bs->source) {
+      g_object_unref (bs->source);
+    }
+    if (bs->container) {
+      g_object_unref (bs->container);
+    }
+    if (bs->keys) {
+      g_list_free (bs->keys);
+    }
+    g_free (bs);
+  }
+}
+
+void
+grl_media_source_search_spec_unref (GrlMediaSourceSearchSpec *ss)
+{
+  g_return_if_fail (ss);
+  g_return_if_fail (ss->ref_count > 0);
+
+  if (g_atomic_int_dec_and_test (&ss->ref_count)) {
+    if (ss->source) {
+      g_object_unref (ss->source);
+    }
+    if (ss->text) {
+      g_free (ss->text);
+    }
+    if (ss->keys) {
+      g_list_free (ss->keys);
+    }
+    g_free (ss);
+  }
+}
+
+void
+grl_media_source_query_spec_unref (GrlMediaSourceQuerySpec *qs)
+{
+  g_return_if_fail (qs);
+  g_return_if_fail (qs->ref_count > 0);
+
+  if (g_atomic_int_dec_and_test (&qs->ref_count)) {
+    if (qs->source) {
+      g_object_unref (qs->source);
+    }
+    if (qs->query) {
+      g_free (qs->query);
+    }
+    if (qs->keys) {
+      g_list_free (qs->keys);
+    }
+    g_free (qs);
+  }
+}
+
+void
+grl_media_source_metadata_spec_unref (GrlMediaSourceMetadataSpec *ms)
+{
+  g_return_if_fail (ms);
+  g_return_if_fail (ms->ref_count > 0);
+
+  if (g_atomic_int_dec_and_test (&ms->ref_count)) {
+    if (ms->source) {
+      g_object_unref (ms->source);
+    }
+    if (ms->media) {
+      g_object_unref (ms->media);
+    }
+    if (ms->keys) {
+      g_list_free (ms->keys);
+    }
+    g_free (ms);
+  }
+}
+
+void
+grl_media_source_store_spec_unref (GrlMediaSourceStoreSpec *ss)
+{
+  g_return_if_fail (ss);
+  g_return_if_fail (ss->ref_count > 0);
+
+  if (g_atomic_int_dec_and_test (&ss->ref_count)) {
+    if (ss->source) {
+      g_object_unref (ss->source);
+    }
+    if (ss->parent) {
+      g_object_unref (ss->parent);
+    }
+    if (ss->media) {
+      g_object_unref (ss->media);
+    }
+    g_free (ss);
+  }
+}
+
+void
+grl_media_source_remove_spec_unref (GrlMediaSourceRemoveSpec *rs)
+{
+  g_return_if_fail (rs);
+  g_return_if_fail (rs->ref_count > 0);
+
+  if (g_atomic_int_dec_and_test (&rs->ref_count)) {
+    if (rs->source) {
+      g_object_unref (rs->source);
+    }
+    if (rs->media_id) {
+      g_free (rs->media_id);
+    }
+    g_free (rs);
+  }
+}
+
 /**
  * grl_media_source_browse:
  * @source: a media source

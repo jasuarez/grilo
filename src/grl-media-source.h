@@ -364,6 +364,18 @@ GrlMediaSourceStoreSpec *grl_media_source_store_spec_ref (GrlMediaSourceStoreSpe
 
 GrlMediaSourceRemoveSpec *grl_media_source_remove_spec_ref (GrlMediaSourceRemoveSpec *rs);
 
+void grl_media_source_browse_spec_unref (GrlMediaSourceBrowseSpec *bs);
+
+void grl_media_source_search_spec_unref (GrlMediaSourceSearchSpec *bs);
+
+void grl_media_source_query_spec_unref (GrlMediaSourceQuerySpec *bs);
+
+void grl_media_source_metadata_spec_unref (GrlMediaSourceMetadataSpec *bs);
+
+void grl_media_source_store_spec_unref (GrlMediaSourceStoreSpec *bs);
+
+void grl_media_source_remove_spec_unref (GrlMediaSourceRemoveSpec *bs);
+
 guint grl_media_source_browse (GrlMediaSource *source,
                                GrlMedia *container,
                                const GList *keys,
