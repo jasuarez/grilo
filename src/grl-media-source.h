@@ -153,6 +153,7 @@ typedef void (*GrlMediaSourceRemoveCb) (GrlMediaSource *source,
  * @flags: the resolution mode
  * @callback: the user defined callback
  * @user_data: the user data to pass in the callback
+ * @ref_count: references counter
  *
  * Data transport structure used internally by the plugins which support
  * browse vmethod.
@@ -167,6 +168,7 @@ typedef struct {
   GrlMetadataResolutionFlags flags;
   GrlMediaSourceResultCb callback;
   gpointer user_data;
+  volatile gint ref_count;
 } GrlMediaSourceBrowseSpec;
 
 /**
@@ -180,6 +182,7 @@ typedef struct {
  * @flags: the resolution mode
  * @callback: the user defined callback
  * @user_data: the user data to pass in the callback
+ * @ref_count: references counter
  *
  * Data transport structure used internally by the plugins which support
  * search vmethod.
@@ -194,6 +197,7 @@ typedef struct {
   GrlMetadataResolutionFlags flags;
   GrlMediaSourceResultCb callback;
   gpointer user_data;
+  volatile gint ref_count;
 } GrlMediaSourceSearchSpec;
 
 /**
@@ -207,6 +211,7 @@ typedef struct {
  * @flags: the resolution mode
  * @callback: the user defined callback
  * @user_data: the user data to pass in the callback
+ * @ref_count: references counter
  *
  * Data transport structure used internally by the plugins which support
  * query vmethod.
@@ -221,6 +226,7 @@ typedef struct {
   GrlMetadataResolutionFlags flags;
   GrlMediaSourceResultCb callback;
   gpointer user_data;
+  volatile gint ref_count;
 } GrlMediaSourceQuerySpec;
 
 /**
@@ -232,6 +238,7 @@ typedef struct {
  * @flags: the resolution mode
  * @callback: the user defined callback
  * @user_data: the user data to pass in the callback
+ * @ref_count: references counter
  *
  * Data transport structure used internally by the plugins which support
  * metadata vmethod.
@@ -244,6 +251,7 @@ typedef struct {
   GrlMetadataResolutionFlags flags;
   GrlMediaSourceMetadataCb callback;
   gpointer user_data;
+  volatile gint ref_count;
 } GrlMediaSourceMetadataSpec;
 
 /**
@@ -253,6 +261,7 @@ typedef struct {
  * @media: a data transfer object
  * @callback: the user defined callback
  * @user_data: the user data to pass in the callback
+ * @ref_count: references counter
  *
  * Data transport structure used internally by the plugins which support
  * store vmethod.
@@ -263,6 +272,7 @@ typedef struct {
   GrlMedia *media;
   GrlMediaSourceStoreCb callback;
   gpointer user_data;
+  volatile gint ref_count;
 } GrlMediaSourceStoreSpec;
 
 /**
@@ -272,6 +282,7 @@ typedef struct {
  * @media: a data transfer object
  * @callback: the user defined callback
  * @user_data: the user data to pass in the callback
+ * @ref_count: references counter
  *
  * Data transport structure used internally by the plugins which support
  * store vmethod.
@@ -282,6 +293,7 @@ typedef struct {
   GrlMedia *media;
   GrlMediaSourceRemoveCb callback;
   gpointer user_data;
+  volatile gint ref_count;
 } GrlMediaSourceRemoveSpec;
 
 /* GrlMediaSource class */
