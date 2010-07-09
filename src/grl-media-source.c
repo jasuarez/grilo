@@ -1340,7 +1340,7 @@ grl_media_source_browse (GrlMediaSource *source,
   _callback = browse_result_relay_cb;
   _user_data = brc;
 
-  bs = g_new0 (GrlMediaSourceBrowseSpec, 1);
+  bs = grl_media_source_browse_spec_new ();
   bs->source = g_object_ref (source);
   bs->browse_id = browse_id;
   bs->keys = _keys;
@@ -1527,7 +1527,7 @@ grl_media_source_search (GrlMediaSource *source,
   _callback = browse_result_relay_cb;
   _user_data = brc;
 
-  ss = g_new0 (GrlMediaSourceSearchSpec, 1);
+  ss = grl_media_source_search_spec_new ();
   ss->source = g_object_ref (source);
   ss->search_id = search_id;
   ss->text = g_strdup (text);
@@ -1715,7 +1715,7 @@ grl_media_source_query (GrlMediaSource *source,
   _callback = browse_result_relay_cb;
   _user_data = brc;
 
-  qs = g_new0 (GrlMediaSourceQuerySpec, 1);
+  qs = grl_media_source_query_spec_new ();
   qs->source = g_object_ref (source);
   qs->query_id = query_id;
   qs->query = g_strdup (query);
@@ -1891,7 +1891,7 @@ grl_media_source_metadata (GrlMediaSource *source,
   _callback = metadata_result_relay_cb;
   _user_data = mrc;
 
-  ms = g_new0 (GrlMediaSourceMetadataSpec, 1);
+  ms = grl_media_source_metadata_spec_new ();
   ms->source = g_object_ref (source);
   ms->metadata_id = metadata_id;
   ms->keys = _keys; /* It is already a copy */
@@ -2127,6 +2127,7 @@ grl_media_source_store (GrlMediaSource *source,
   const gchar *title;
   const gchar *url;
   GError *error = NULL;
+  GrlMediaSourceStoreSpec *ss;
 
   g_return_if_fail (GRL_IS_MEDIA_SOURCE (source));
   g_return_if_fail (!parent || GRL_IS_MEDIA_BOX (parent));
@@ -2155,7 +2156,7 @@ grl_media_source_store (GrlMediaSource *source,
 
   /* If we have the info, ask the plugin to store the media */
   if (!error) {
-    GrlMediaSourceStoreSpec *ss = g_new0 (GrlMediaSourceStoreSpec, 1);
+    ss = grl_media_source_store_spec_new ();
     ss->source = g_object_ref (source);
     ss->parent = parent ? g_object_ref (parent) : NULL;
     ss->media = g_object_ref (media);
@@ -2233,6 +2234,7 @@ grl_media_source_remove (GrlMediaSource *source,
 
   const gchar *id;
   GError *error = NULL;
+  GrlMediaSourceRemoveSpec *rs;
 
   g_return_if_fail (GRL_IS_MEDIA_SOURCE (source));
   g_return_if_fail (GRL_IS_MEDIA (media));
@@ -2249,7 +2251,7 @@ grl_media_source_remove (GrlMediaSource *source,
   }
 
   if (!error) {
-    GrlMediaSourceRemoveSpec *rs = g_new0 (GrlMediaSourceRemoveSpec, 1);
+    rs = grl_media_source_remove_spec_new ();
     rs->source = g_object_ref (source);
     rs->media_id = g_strdup (id);
     rs->media = g_object_ref (media);
