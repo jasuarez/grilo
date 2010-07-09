@@ -1247,6 +1247,72 @@ grl_media_source_remove_spec_new ()
   return rs;
 }
 
+GrlMediaSourceBrowseSpec *
+grl_media_source_browse_spec_ref (GrlMediaSourceBrowseSpec *bs)
+{
+  g_return_val_if_fail (bs, NULL);
+  g_return_val_if_fail (bs->ref_count > 0, bs);
+
+  g_atomic_int_inc (&bs->ref_count);
+
+  return bs;
+}
+
+GrlMediaSourceSearchSpec *
+grl_media_source_search_spec_ref (GrlMediaSourceSearchSpec *ss)
+{
+  g_return_val_if_fail (ss, NULL);
+  g_return_val_if_fail (ss->ref_count > 0, ss);
+
+  g_atomic_int_inc (&ss->ref_count);
+
+  return ss;
+}
+
+GrlMediaSourceQuerySpec *
+grl_media_source_query_spec_ref (GrlMediaSourceQuerySpec *qs)
+{
+  g_return_val_if_fail (qs, NULL);
+  g_return_val_if_fail (qs->ref_count > 0, qs);
+
+  g_atomic_int_inc (&qs->ref_count);
+
+  return qs;
+}
+
+GrlMediaSourceMetadataSpec *
+grl_media_source_metadata_spec_ref (GrlMediaSourceMetadataSpec *ms)
+{
+  g_return_val_if_fail (ms, NULL);
+  g_return_val_if_fail (ms->ref_count > 0, ms);
+
+  g_atomic_int_inc (&ms->ref_count);
+
+  return ms;
+}
+
+GrlMediaSourceStoreSpec *
+grl_media_source_store_spec_ref (GrlMediaSourceStoreSpec *ss)
+{
+  g_return_val_if_fail (ss, NULL);
+  g_return_val_if_fail (ss->ref_count > 0, ss);
+
+  g_atomic_int_inc (&ss->ref_count);
+
+  return ss;
+}
+
+GrlMediaSourceRemoveSpec *
+grl_media_source_remove_spec_ref (GrlMediaSourceRemoveSpec *rs)
+{
+  g_return_val_if_fail (rs, NULL);
+  g_return_val_if_fail (rs->ref_count > 0, rs);
+
+  g_atomic_int_inc (&rs->ref_count);
+
+  return rs;
+}
+
 /**
  * grl_media_source_browse:
  * @source: a media source
