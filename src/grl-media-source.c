@@ -401,36 +401,6 @@ set_operation_data (GrlMediaSource *source, guint operation_id, gpointer data)
 }
 
 static void
-free_browse_operation_spec (GrlMediaSourceBrowseSpec *spec)
-{
-  g_debug ("free_browse_operation_spec");
-  g_object_unref (spec->source);
-  g_object_unref (spec->container);
-  g_list_free (spec->keys);
-  g_free (spec);
-}
-
-static void
-free_search_operation_spec (GrlMediaSourceSearchSpec *spec)
-{
-  g_debug ("free_search_operation_spec");
-  g_object_unref (spec->source);
-  g_free (spec->text);
-  g_list_free (spec->keys);
-  g_free (spec);
-}
-
-static void
-free_query_operation_spec (GrlMediaSourceQuerySpec *spec)
-{
-  g_debug ("free_query_operation_spec");
-  g_object_unref (spec->source);
-  g_free (spec->query);
-  g_list_free (spec->keys);
-  g_free (spec);
-}
-
-static void
 free_source_map_list (GList *source_map_list)
 {
   GList *iter;
@@ -502,17 +472,6 @@ metadata_idle (gpointer user_data)
   return FALSE;
 }
 
-static void
-store_idle_destroy (gpointer user_data)
-{
-  GrlMediaSourceStoreSpec *ss = (GrlMediaSourceStoreSpec *) user_data;
-  g_object_unref (ss->source);
-  if (ss->parent)
-    g_object_unref (ss->parent);
-  g_object_unref (ss->media);
-  g_free (ss);
-}
-
 static gboolean
 store_idle (gpointer user_data)
 {
@@ -520,15 +479,6 @@ store_idle (gpointer user_data)
   GrlMediaSourceStoreSpec *ss = (GrlMediaSourceStoreSpec *) user_data;
   GRL_MEDIA_SOURCE_GET_CLASS (ss->source)->store (ss->source, ss);
   return FALSE;
-}
-
-static void
-remove_idle_destroy (gpointer user_data)
-{
-  GrlMediaSourceRemoveSpec *rs = (GrlMediaSourceRemoveSpec *) user_data;
-  g_object_unref (rs->source);
-  g_free (rs->media_id);
-  g_free (rs);
 }
 
 static gboolean
@@ -754,11 +704,11 @@ browse_result_relay_cb (GrlMediaSource *source,
     g_debug ("Got remaining '0' for operation %d (%s)",
 	     browse_id,  grl_metadata_source_get_name (GRL_METADATA_SOURCE (source)));
     if (brc->bspec) {
-      free_browse_operation_spec (brc->bspec);
+      grl_media_source_browse_spec_unref (brc->bspec);
     } else if (brc->sspec) {
-      free_search_operation_spec (brc->sspec);
+      grl_media_source_search_spec_unref (brc->sspec);
     } else if (brc->sspec) {
-      free_query_operation_spec (brc->qspec);
+      grl_media_source_query_spec_unref (brc->qspec);
     }
     g_free (brc->auto_split);
     g_free (brc);
@@ -817,13 +767,7 @@ metadata_result_relay_cb (GrlMediaSource *source,
 
   mrc->user_callback (source, media, mrc->user_data, error);
 
-  g_object_unref (mrc->spec->source);
-  if (mrc->spec->media) {
-    /* Can be NULL if getting metadata for root category */
-    g_object_unref (mrc->spec->media);
-  }
-  g_list_free (mrc->spec->keys);
-  g_free (mrc->spec);
+  grl_media_source_metadata_spec_unref (mrc->spec);
   g_free (mrc);
 }
 
@@ -2349,7 +2293,7 @@ grl_media_source_store (GrlMediaSource *source,
     g_idle_add_full (G_PRIORITY_DEFAULT_IDLE,
 		     store_idle,
 		     ss,
-		     store_idle_destroy);
+                     (GDestroyNotify) grl_media_source_store_spec_unref);
   } else {
     callback (source, parent, media, user_data, error);
     g_error_free (error);
@@ -2444,7 +2388,7 @@ grl_media_source_remove (GrlMediaSource *source,
     g_idle_add_full (G_PRIORITY_DEFAULT_IDLE,
 		     remove_idle,
 		     rs,
-		     remove_idle_destroy);
+                     (GDestroyNotify) grl_media_source_remove_spec_unref);
   } else {
     callback (source, media, user_data, error);
     g_error_free (error);
