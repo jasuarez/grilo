@@ -168,7 +168,6 @@ typedef struct {
  * @key_id: Key which value is to be stored
  * @callback: the callback passed to grl_metadata_source_set_metadata()
  * @user_data: user data passed to grl_metadata_source_set_metadata()
- * @failed_keys: for internal use of the framework only.
  * @keymaps: for internal use of the framework only.
  * @ref_count: references counter
  *
@@ -181,7 +180,6 @@ typedef struct {
   GrlMetadataWritingFlags flags;
   GrlMetadataSourceSetMetadataCb callback;
   gpointer user_data;
-  GList *failed_keys;
   volatile gint ref_count;
 } GrlMetadataSourceSetMetadataSpec;
 
