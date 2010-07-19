@@ -140,6 +140,18 @@ struct MetadataRelayCb {
   GrlMediaSourceMetadataSpec *spec;
 };
 
+struct StoreRelayCb {
+  GrlMediaSourceStoreCb user_callback;
+  gpointer user_data;
+  GrlMediaSourceStoreSpec *spec;
+};
+
+struct RemoveRelayCb {
+  GrlMediaSourceRemoveCb user_callback;
+  gpointer user_data;
+  GrlMediaSourceRemoveSpec *spec;
+};
+
 struct OperationState {
   gboolean cancelled;
   gboolean completed;
@@ -575,6 +587,65 @@ auto_split_run_next_chunk (struct BrowseRelayCb *brc, guint remaining)
   g_idle_add (operation, spec);
 }
 
+static gboolean
+browse_relay_free (gpointer user_data)
+{
+  struct BrowseRelayCb *brc = (struct BrowseRelayCb *) user_data;
+
+  g_debug ("browse_relay_free");
+
+  if (brc->bspec) {
+    grl_media_source_browse_spec_unref (brc->bspec);
+  } else if (brc->sspec) {
+    grl_media_source_search_spec_unref (brc->sspec);
+  } else if (brc->sspec) {
+    grl_media_source_query_spec_unref (brc->qspec);
+  }
+  g_free (brc->auto_split);
+  g_free (brc);
+
+  return FALSE;
+}
+
+static gboolean
+metadata_relay_free (gpointer user_data)
+{
+  struct MetadataRelayCb *mrc = (struct MetadataRelayCb *) user_data;
+
+  g_debug ("metadata_relay_free");
+
+  grl_media_source_metadata_spec_unref (mrc->spec);
+  g_free (mrc);
+
+  return FALSE;
+}
+
+static gboolean
+store_relay_free (gpointer user_data)
+{
+  struct StoreRelayCb *src = (struct StoreRelayCb *) user_data;
+
+  g_debug ("store_relay_free");
+
+  grl_media_source_store_spec_unref (src->spec);
+  g_free (src);
+
+  return FALSE;
+}
+
+static gboolean
+remove_relay_free (gpointer user_data)
+{
+  struct RemoveRelayCb *rrc = (struct RemoveRelayCb *) user_data;
+
+  g_debug ("remove_relay_free");
+
+  grl_media_source_remove_spec_unref (rrc->spec);
+  g_free (rrc);
+
+  return FALSE;
+}
+
 static void
 browse_result_relay_cb (GrlMediaSource *source,
 			guint browse_id,
@@ -703,15 +774,7 @@ browse_result_relay_cb (GrlMediaSource *source,
   if (remaining == 0) {
     g_debug ("Got remaining '0' for operation %d (%s)",
 	     browse_id,  grl_metadata_source_get_name (GRL_METADATA_SOURCE (source)));
-    if (brc->bspec) {
-      grl_media_source_browse_spec_unref (brc->bspec);
-    } else if (brc->sspec) {
-      grl_media_source_search_spec_unref (brc->sspec);
-    } else if (brc->sspec) {
-      grl_media_source_query_spec_unref (brc->qspec);
-    }
-    g_free (brc->auto_split);
-    g_free (brc);
+    g_idle_add (browse_relay_free, brc);
   }
 }
 
@@ -767,8 +830,7 @@ metadata_result_relay_cb (GrlMediaSource *source,
 
   mrc->user_callback (source, media, mrc->user_data, error);
 
-  grl_media_source_metadata_spec_unref (mrc->spec);
-  g_free (mrc);
+  g_idle_add (metadata_relay_free, mrc);
 }
 
 static void
@@ -790,6 +852,24 @@ metadata_result_async_cb (GrlMediaSource *source,
 }
 
 static void
+store_result_relay_cb (GrlMediaSource *source,
+                       GrlMediaBox *parent,
+                       GrlMedia *media,
+                       gpointer user_data,
+                       const GError *error)
+{
+  g_debug ("store_result_relay_cb");
+
+  struct StoreRelayCb *src;
+
+  src = (struct StoreRelayCb *) user_data;
+
+  src->user_callback (source, parent, media, src->user_data, error);
+
+  g_idle_add (store_relay_free, src);
+}
+
+static void
 store_async_cb (GrlMediaSource *source,
                 GrlMediaBox *parent,
                 GrlMedia *media,
@@ -805,6 +885,23 @@ store_async_cb (GrlMediaSource *source,
   }
 
   ds->complete = TRUE;
+}
+
+static void
+remove_result_relay_cb (GrlMediaSource *source,
+                        GrlMedia *media,
+                        gpointer user_data,
+                        const GError *error)
+{
+  g_debug ("remove_result_relay_cb");
+
+  struct RemoveRelayCb *rrc;
+
+  rrc = (struct RemoveRelayCb *) user_data;
+
+  rrc->user_callback (source, media, rrc->user_data, error);
+
+  g_idle_add (remove_relay_free, rrc);
 }
 
 static void
@@ -2253,6 +2350,7 @@ grl_media_source_store (GrlMediaSource *source,
 
   const gchar *title;
   const gchar *url;
+  struct StoreRelayCb *src;
   GError *error = NULL;
   GrlMediaSourceStoreSpec *ss;
 
@@ -2283,17 +2381,20 @@ grl_media_source_store (GrlMediaSource *source,
 
   /* If we have the info, ask the plugin to store the media */
   if (!error) {
+    src = g_new (struct StoreRelayCb, 1);
+    src->user_callback = callback;
+    src->user_data = user_data;
+
     ss = grl_media_source_store_spec_new ();
     ss->source = g_object_ref (source);
     ss->parent = parent ? g_object_ref (parent) : NULL;
     ss->media = g_object_ref (media);
-    ss->callback = callback;
-    ss->user_data = user_data;
+    ss->callback = store_result_relay_cb;
+    ss->user_data = src;
 
-    g_idle_add_full (G_PRIORITY_DEFAULT_IDLE,
-		     store_idle,
-		     ss,
-                     (GDestroyNotify) grl_media_source_store_spec_unref);
+    src->spec = ss;
+
+    g_idle_add (store_idle, ss);
   } else {
     callback (source, parent, media, user_data, error);
     g_error_free (error);
@@ -2360,6 +2461,7 @@ grl_media_source_remove (GrlMediaSource *source,
   g_debug ("grl_media_source_remove");
 
   const gchar *id;
+  struct RemoveRelayCb *rrc;
   GError *error = NULL;
   GrlMediaSourceRemoveSpec *rs;
 
@@ -2378,17 +2480,20 @@ grl_media_source_remove (GrlMediaSource *source,
   }
 
   if (!error) {
+    rrc = g_new (struct RemoveRelayCb, 1);
+    rrc->user_callback = callback;
+    rrc->user_data = user_data;
+
     rs = grl_media_source_remove_spec_new ();
     rs->source = g_object_ref (source);
     rs->media_id = g_strdup (id);
     rs->media = g_object_ref (media);
-    rs->callback = callback;
-    rs->user_data = user_data;
+    rs->callback = remove_result_relay_cb;
+    rs->user_data = rrc;
 
-    g_idle_add_full (G_PRIORITY_DEFAULT_IDLE,
-		     remove_idle,
-		     rs,
-                     (GDestroyNotify) grl_media_source_remove_spec_unref);
+    rrc->spec = rs;
+
+    g_idle_add (remove_idle, rs);
   } else {
     callback (source, media, user_data, error);
     g_error_free (error);
