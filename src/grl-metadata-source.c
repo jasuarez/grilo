@@ -517,6 +517,28 @@ grl_metadata_source_set_metadata_spec_new ()
   return sms;
 }
 
+GrlMetadataSourceResolveSpec *
+grl_metadata_source_resolve_spec_ref (GrlMetadataSourceResolveSpec *rs)
+{
+  g_return_val_if_fail (rs, NULL);
+  g_return_val_if_fail (rs->ref_count > 0, rs);
+
+  g_atomic_int_inc (&rs->ref_count);
+
+  return rs;
+}
+
+GrlMetadataSourceSetMetadataSpec *
+grl_metadata_source_set_metadata_spec_ref (GrlMetadataSourceSetMetadataSpec *sms)
+{
+  g_return_val_if_fail (sms, NULL);
+  g_return_val_if_fail (sms->ref_count > 0, sms);
+
+  g_atomic_int_inc (&sms->ref_count);
+
+  return sms;
+}
+
 /**
  * grl_metadata_source_supported_keys:
  * @source: a metadata source

@@ -259,6 +259,10 @@ GrlMetadataSourceResolveSpec *grl_metadata_source_resolve_spec_new (void);
 
 GrlMetadataSourceSetMetadataSpec *grl_metadata_source_set_metadata_spec_new (void);
 
+GrlMetadataSourceResolveSpec *grl_metadata_source_resolve_spec_ref (GrlMetadataSourceResolveSpec *rs);
+
+GrlMetadataSourceSetMetadataSpec *grl_metadata_source_set_metadata_spec_ref (GrlMetadataSourceSetMetadataSpec *sms);
+
 GrlSupportedOps grl_metadata_source_supported_operations (GrlMetadataSource *source);
 
 const GList *grl_metadata_source_supported_keys (GrlMetadataSource *source);
