@@ -411,11 +411,11 @@ set_metadata_idle (gpointer user_data)
 
   smctlcb = (struct SetMetadataCtlCb *) user_data;
   keymap = (struct SourceKeyMap *) smctlcb->next->data;
-  
-  sms = g_new0 (GrlMetadataSourceSetMetadataSpec, 1);
-  sms->source = keymap->source;
-  sms->keys = keymap->keys;
-  sms->media = smctlcb->media;
+
+  sms = grl_metadata_source_set_metadata_spec_new ();
+  sms->source = g_object_ref (keymap->source);
+  sms->keys = g_list_copy (keymap->keys);
+  sms->media = g_object_ref (smctlcb->media);
   sms->callback = set_metadata_ctl_cb;
   sms->user_data = smctlcb;
 
@@ -641,7 +641,7 @@ grl_metadata_source_resolve (GrlMetadataSource *source,
   rrc->user_callback = callback;
   rrc->user_data = user_data;
 
-  rs = g_new0 (GrlMetadataSourceResolveSpec, 1);
+  rs = grl_metadata_source_resolve_spec_new ();
   rs->source = g_object_ref (source);
   rs->keys = _keys;
   rs->media = g_object_ref (media);
