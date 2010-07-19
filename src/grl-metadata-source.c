@@ -267,16 +267,18 @@ print_keys (gchar *label, const GList *keys)
   g_print (" ]\n");
 }
 
-static void
-free_set_metadata_ctl_cb_info (struct SetMetadataCtlCb *data)
+static gboolean
+free_set_metadata_ctl_cb_info (gpointer data)
 {
+  struct SetMetadataCtlCb *smctlcb = (struct SetMetadataCtlCb *) data;
+  GList *iter;
+
   g_debug ("free_set_metadata_ctl_cb_info");
 
-  GList *iter;
-  g_object_unref (data->source);
-  g_object_unref (data->media);
-  g_list_free (data->failed_keys);
-  iter = data->keymaps;
+  g_object_unref (smctlcb->source);
+  g_object_unref (smctlcb->media);
+  g_list_free (smctlcb->failed_keys);
+  iter = smctlcb->keymaps;
   while (iter) {
     struct SourceKeyMap *map = (struct SourceKeyMap *) iter->data;
     g_object_unref (map->source);
@@ -284,14 +286,16 @@ free_set_metadata_ctl_cb_info (struct SetMetadataCtlCb *data)
     g_free (map);
     iter = g_list_next (iter);
   }
-  g_list_free (data->keymaps);
-  while (iter) {
-    g_free (iter->data);
-    iter = g_list_next (iter);
-  }
-  iter = data->specs;
-  
-  g_free (data);
+  g_list_free (smctlcb->keymaps);
+
+  g_list_foreach (smctlcb->specs,
+                  (GFunc) grl_metadata_source_set_metadata_spec_unref,
+                  NULL);
+  g_list_free (smctlcb->specs);
+
+  g_free (smctlcb);
+
+  return FALSE;
 }
 
 static void
@@ -329,8 +333,19 @@ set_metadata_ctl_cb (GrlMetadataSource *source,
     if (own_error) {
       g_error_free (own_error);
     }
-    free_set_metadata_ctl_cb_info (smctlcb);
+    g_idle_add (free_set_metadata_ctl_cb_info, smctlcb);
   }
+}
+
+static gboolean
+resolve_relay_free (gpointer data)
+{
+  struct ResolveRelayCb *rrc = (struct ResolveRelayCb *) data;
+
+  grl_metadata_source_resolve_spec_unref (rrc->spec);
+  g_free (rrc);
+
+  return FALSE;
 }
 
 static void
@@ -346,11 +361,7 @@ resolve_result_relay_cb (GrlMetadataSource *source,
   rrc = (struct ResolveRelayCb *) user_data;
   rrc->user_callback (source, media, rrc->user_data, error);
 
-  g_object_unref (rrc->spec->source);
-  g_object_unref (rrc->spec->media);
-  g_list_free (rrc->spec->keys);
-  g_free (rrc->spec);
-  g_free (rrc);
+  g_idle_add (resolve_relay_free, rrc);
 }
 
 static gboolean
