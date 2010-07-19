@@ -313,7 +313,8 @@ set_metadata_ctl_cb (GrlMetadataSource *source,
   smctlcb = (struct SetMetadataCtlCb *) user_data;
 
   if (failed_keys) {
-    smctlcb->failed_keys = g_list_concat (smctlcb->failed_keys, failed_keys);
+    smctlcb->failed_keys = g_list_concat (smctlcb->failed_keys,
+                                          g_list_copy (failed_keys));
   }
 
   smctlcb->pending--;
