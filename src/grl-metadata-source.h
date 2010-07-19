@@ -146,6 +146,7 @@ typedef void (*GrlMetadataSourceSetMetadataCb) (GrlMetadataSource *source,
  * strategy
  * @callback: the callback passed to grl_metadata_source_resolve()
  * @user_data: user data passed to grl_metadata_source_resolve()
+ * @ref_count: references counter
  *
  * Represents the closure used by the derived objects to fetch, store and
  * return the transfer object to the client's code.
@@ -157,6 +158,7 @@ typedef struct {
   GrlMetadataResolutionFlags flags;
   GrlMetadataSourceResolveCb callback;
   gpointer user_data;
+  volatile gint ref_count;
 } GrlMetadataSourceResolveSpec;
 
 /**
@@ -168,6 +170,7 @@ typedef struct {
  * @user_data: user data passed to grl_metadata_source_set_metadata()
  * @failed_keys: for internal use of the framework only.
  * @keymaps: for internal use of the framework only.
+ * @ref_count: references counter
  *
  * Represents the closure used by the derived objects to operate.
  */
@@ -179,6 +182,7 @@ typedef struct {
   GrlMetadataSourceSetMetadataCb callback;
   gpointer user_data;
   GList *failed_keys;
+  volatile gint ref_count;
 } GrlMetadataSourceSetMetadataSpec;
 
 /**
