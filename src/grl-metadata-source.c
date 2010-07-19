@@ -495,6 +495,28 @@ analyze_keys_to_write (GrlMetadataSource *source,
 
 /* ================ API ================ */
 
+GrlMetadataSourceResolveSpec *
+grl_metadata_source_resolve_spec_new ()
+{
+  GrlMetadataSourceResolveSpec *rs;
+
+  rs = g_new0 (GrlMetadataSourceResolveSpec, 1);
+  rs->ref_count = 1;
+
+  return rs;
+}
+
+GrlMetadataSourceSetMetadataSpec *
+grl_metadata_source_set_metadata_spec_new ()
+{
+  GrlMetadataSourceSetMetadataSpec *sms;
+
+  sms = g_new0 (GrlMetadataSourceSetMetadataSpec, 1);
+  sms->ref_count = 1;
+
+  return sms;
+}
+
 /**
  * grl_metadata_source_supported_keys:
  * @source: a metadata source

@@ -255,6 +255,10 @@ G_BEGIN_DECLS
 
 GType grl_metadata_source_get_type (void);
 
+GrlMetadataSourceResolveSpec *grl_metadata_source_resolve_spec_new (void);
+
+GrlMetadataSourceSetMetadataSpec *grl_metadata_source_set_metadata_spec_new (void);
+
 GrlSupportedOps grl_metadata_source_supported_operations (GrlMetadataSource *source);
 
 const GList *grl_metadata_source_supported_keys (GrlMetadataSource *source);
