@@ -50,7 +50,7 @@ GRL_LOG_DOMAIN(media_cache_log_domain);
 #define GRL_CACHE_PATTERN "cache_%u"
 
 #define GRL_CACHE_CREATE_CACHE                     \
-  "CREATE TABLE %s ("                              \
+  "CREATE %s TABLE %s ("                           \
   "id      TEXT PRIMARY KEY, "                     \
   "parent  TEXT REFERENCES %s (id), "              \
   "updated DATE, "                                 \
@@ -89,11 +89,6 @@ static void grl_media_cache_get_property (GObject *object,
                                           GValue *value,
                                           GParamSpec *pspec);
 
-static void grl_media_cache_set_property (GObject *object,
-                                          guint prop_id,
-                                          const GValue *value,
-                                          GParamSpec *pspec);
-
 static void remove_table (sqlite3 *db,
                           const gchar *name);
 
@@ -109,7 +104,6 @@ grl_media_cache_class_init (GrlMediaCacheClass *cache_class)
   gobject_class->finalize = grl_media_cache_finalize;
   gobject_class->dispose  = grl_media_cache_dispose;
 
-  gobject_class->set_property = grl_media_cache_set_property;
   gobject_class->get_property = grl_media_cache_get_property;
 
   g_object_class_install_property (gobject_class,
@@ -118,8 +112,7 @@ grl_media_cache_class_init (GrlMediaCacheClass *cache_class)
                                                         "Cache identifier",
                                                         "Cache identifier",
                                                         NULL,
-                                                        G_PARAM_CONSTRUCT_ONLY |
-                                                        G_PARAM_READWRITE |
+                                                        G_PARAM_READABLE |
                                                         G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_property (gobject_class,
@@ -128,7 +121,7 @@ grl_media_cache_class_init (GrlMediaCacheClass *cache_class)
                                                          "persistent",
                                                          "Cache is persistent",
                                                          FALSE,
-                                                         G_PARAM_READWRITE |
+                                                         G_PARAM_READABLE |
                                                          G_PARAM_STATIC_STRINGS));
 
   g_type_class_add_private (cache_class,
@@ -157,35 +150,11 @@ grl_media_cache_finalize (GObject *object)
 
   /* Free all non-gobject elements */
   GRL_DEBUG (__FUNCTION__);
-  if (!cache->priv->persistent) {
-    remove_table (cache->priv->db, cache->priv->cache_id);
-  }
+
   sqlite3_close (cache->priv->db);
   g_free (cache->priv->cache_id);
 
   G_OBJECT_CLASS (grl_media_cache_parent_class)->finalize (object);
-}
-
-static void
-grl_media_cache_set_property (GObject *object,
-                              guint prop_id,
-                              const GValue *value,
-                              GParamSpec *pspec)
-{
-  GrlMediaCache *cache = GRL_MEDIA_CACHE (object);
-
-  GRL_DEBUG (__FUNCTION__);
-  switch (prop_id) {
-  case PROP_CACHE_ID:
-    cache->priv->cache_id = g_value_dup_string (value);
-    break;
-  case PROP_PERSISTENT:
-    cache->priv->persistent = g_value_get_boolean (value);
-    break;
-  default:
-    G_OBJECT_WARN_INVALID_PROPERTY_ID (cache, prop_id, pspec);
-    break;
-  }
 }
 
 static void
@@ -213,7 +182,7 @@ grl_media_cache_get_property (GObject *object,
 /* ================ Utilities ================ */
 
 static sqlite3 *
-create_table (const gchar *name)
+create_table (const gchar *name, gboolean persistent)
 {
   const gchar *home;
   gchar *db_path;
@@ -242,6 +211,7 @@ create_table (const gchar *name)
 
   /* Create the table */
   sql_sentence = g_strdup_printf (GRL_CACHE_CREATE_CACHE,
+                                  persistent? "": "TEMPORARY",
                                   name, name);
   if (sqlite3_exec (db, sql_sentence, NULL, NULL, &sql_error) != SQLITE_OK) {
     if (sql_error) {
@@ -294,16 +264,15 @@ grl_media_cache_new (void)
   cache_id = g_strdup_printf (GRL_CACHE_PATTERN, g_random_int ());
 
   /* Create the cache */
-  db = create_table (cache_id);
+  db = create_table (cache_id, FALSE);
 
   if (db) {
-    cache = g_object_new (GRL_TYPE_MEDIA_CACHE,
-                          "cache-id", cache_id,
-                          NULL);
+    cache = g_object_new (GRL_TYPE_MEDIA_CACHE, NULL);
+    cache->priv->cache_id = cache_id;
     cache->priv->db = db;
+  } else {
+    g_free (cache_id);
   }
-
-  g_free (cache_id);
 
   return cache;
 }
@@ -319,13 +288,12 @@ grl_media_cache_new_persistent (const gchar *cache_id)
   GRL_DEBUG (__FUNCTION__);
 
   /* Create the cache */
-  db = create_table (cache_id);
+  db = create_table (cache_id, TRUE);
 
   if (db) {
-    cache = g_object_new (GRL_TYPE_MEDIA_CACHE,
-                          "cache-id", cache_id,
-                          "persistent", TRUE,
-                          NULL);
+    cache = g_object_new (GRL_TYPE_MEDIA_CACHE, NULL);
+    cache->priv->cache_id = g_strdup (cache_id);
+    cache->priv->persistent = TRUE;
     cache->priv->db = db;
   }
 
