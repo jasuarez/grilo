@@ -93,7 +93,8 @@ PKG_CHECK_MODULES(DEPS, glib-2.0 >= 2.22 \
 			gobject-2.0 \
 			gmodule-2.0 \
 			gio-2.0 \
-			libxml-2.0)
+			libxml-2.0 \
+                        sqlite3)
 
 GLIB_GENMARSHAL=`pkg-config --variable=glib_genmarshal glib-2.0`
 GLIB_MKENUMS=`pkg-config --variable=glib_mkenums glib-2.0`

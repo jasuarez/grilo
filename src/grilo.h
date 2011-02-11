@@ -32,6 +32,7 @@
 #include <grl-plugin-registry.h>
 #include <grl-media-plugin.h>
 #include <grl-media-source.h>
+#include <grl-media-cache.h>
 #include <grl-metadata-source.h>
 #include <grl-metadata-key.h>
 #include <grl-data.h>
