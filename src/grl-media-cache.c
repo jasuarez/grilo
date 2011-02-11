@@ -77,6 +77,7 @@ enum {
 struct _GrlMediaCachePrivate {
   gchar *cache_id;
   gboolean persistent;
+  gboolean force_db_removal;
   sqlite3 *db;
 };
 
@@ -150,6 +151,10 @@ grl_media_cache_finalize (GObject *object)
 
   /* Free all non-gobject elements */
   GRL_DEBUG (__FUNCTION__);
+
+  if (cache->priv->force_db_removal) {
+    remove_table (cache->priv->db, cache->priv->cache_id);
+  }
 
   sqlite3_close (cache->priv->db);
   g_free (cache->priv->cache_id);
@@ -298,6 +303,18 @@ grl_media_cache_new_persistent (const gchar *cache_id)
   }
 
   return cache;
+}
+
+void
+grl_media_cache_destroy (GrlMediaCache *cache)
+{
+  g_return_if_fail (GRL_IS_MEDIA_CACHE (cache));
+
+  if (cache->priv->persistent) {
+    cache->priv->force_db_removal = TRUE;
+  }
+
+  g_object_unref (cache);
 }
 
 gboolean

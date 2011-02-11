@@ -92,6 +92,8 @@ GrlMediaCache *grl_media_cache_new (void);
 
 GrlMediaCache *grl_media_cache_new_persistent (const gchar *cache_id);
 
+void grl_media_cache_destroy (GrlMediaCache *cache);
+
 gboolean grl_media_cache_insert_media (GrlMediaCache *cache,
                                        GrlMedia *media,
                                        const gchar *parent,
