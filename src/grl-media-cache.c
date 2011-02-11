@@ -59,6 +59,10 @@ GRL_LOG_DOMAIN(media_cache_log_domain);
 #define GRL_CACHE_REMOVE_CACHE                  \
   "DROP TABLE %s"
 
+#define GRL_CACHE_CHECK_CACHE                   \
+  "SELECT name FROM sqlite_master "             \
+  "WHERE type='table' AND name='%s'"
+
 #define GRL_CACHE_INSERT_ELEMENT                \
   "INSERT OR REPLACE INTO %s "                  \
   "(id, parent, updated, media) VALUES "        \
@@ -187,12 +191,10 @@ grl_media_cache_get_property (GObject *object,
 /* ================ Utilities ================ */
 
 static sqlite3 *
-create_table (const gchar *name, gboolean persistent)
+create_connection ()
 {
   const gchar *home;
   gchar *db_path;
-  gchar *sql_error = NULL;
-  gchar *sql_sentence;
   sqlite3 *db;
 
   home = g_getenv ("HOME");
@@ -213,6 +215,21 @@ create_table (const gchar *name, gboolean persistent)
   }
 
   g_free (db_path);
+
+  return db;
+}
+
+static sqlite3 *
+create_table (const gchar *name, gboolean persistent)
+{
+  gchar *sql_error = NULL;
+  gchar *sql_sentence;
+  sqlite3 *db;
+
+  db = create_connection ();
+  if (!db) {
+    return NULL;
+  }
 
   /* Create the table */
   sql_sentence = g_strdup_printf (GRL_CACHE_CREATE_CACHE,
@@ -251,6 +268,46 @@ remove_table (sqlite3 *db,
   }
 
   g_free (sql_sentence);
+}
+
+static sqlite3 *
+check_table (const gchar *name)
+{
+  gchar *sql_sentence;
+  gint r;
+  sqlite3 *db;
+  sqlite3_stmt *sql_stmt;
+
+  db = create_connection ();
+  if (!db) {
+    return NULL;
+  }
+
+  /* Prepare the sentence */
+  sql_sentence = g_strdup_printf (GRL_CACHE_CHECK_CACHE,
+                                  name);
+
+  if (sqlite3_prepare_v2 (db,
+                          sql_sentence,
+                          strlen (sql_sentence),
+                          &sql_stmt, NULL) != SQLITE_OK) {
+    g_free (sql_sentence);
+    sqlite3_close (db);
+    return NULL;
+  }
+
+  /* Wait until it finishes */
+  while ((r = sqlite3_step (sql_stmt)) == SQLITE_BUSY);
+
+  sqlite3_finalize (sql_stmt);
+
+  /* Check for result */
+  if (r == SQLITE_ROW) {
+    return db;
+  } else {
+    sqlite3_close (db);
+    return NULL;
+  }
 }
 
 /* ================ API ================ */
@@ -294,6 +351,28 @@ grl_media_cache_new_persistent (const gchar *cache_id)
 
   /* Create the cache */
   db = create_table (cache_id, TRUE);
+
+  if (db) {
+    cache = g_object_new (GRL_TYPE_MEDIA_CACHE, NULL);
+    cache->priv->cache_id = g_strdup (cache_id);
+    cache->priv->persistent = TRUE;
+    cache->priv->db = db;
+  }
+
+  return cache;
+}
+
+GrlMediaCache *
+grl_media_cache_load_persistent (const gchar *cache_id)
+{
+  GrlMediaCache *cache = NULL;
+  sqlite3 *db;
+
+  g_return_val_if_fail (cache_id, NULL);
+
+  GRL_DEBUG (__FUNCTION__);
+
+  db = check_table (cache_id);
 
   if (db) {
     cache = g_object_new (GRL_TYPE_MEDIA_CACHE, NULL);
