@@ -308,6 +308,30 @@ grl_media_cache_new (void)
   return cache;
 }
 
+GrlMediaCache *
+grl_media_cache_new_persistent (const gchar *cache_id)
+{
+  GrlMediaCache *cache = NULL;
+  sqlite3 *db;
+
+  g_return_val_if_fail (cache_id, NULL);
+
+  GRL_DEBUG (__FUNCTION__);
+
+  /* Create the cache */
+  db = create_table (cache_id);
+
+  if (db) {
+    cache = g_object_new (GRL_TYPE_MEDIA_CACHE,
+                          "cache-id", cache_id,
+                          "persistent", TRUE,
+                          NULL);
+    cache->priv->db = db;
+  }
+
+  return cache;
+}
+
 gboolean
 grl_media_cache_insert_media (GrlMediaCache *cache,
                               GrlMedia *media,
