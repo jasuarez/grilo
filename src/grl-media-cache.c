@@ -36,6 +36,7 @@
 #include "grl-error.h"
 #include "grl-log.h"
 #include "grl-media-cache.h"
+#include "grl-plugin-registry.h"
 
 #define GRL_LOG_DOMAIN_DEFAULT media_cache_log_domain
 GRL_LOG_DOMAIN(media_cache_log_domain);
@@ -49,12 +50,18 @@ GRL_LOG_DOMAIN(media_cache_log_domain);
 
 #define GRL_CACHE_PATTERN "cache_%u"
 
-#define GRL_CACHE_CREATE_CACHE                     \
+#define GRL_CACHE_CREATE_CACHE_BEGIN               \
   "CREATE %s TABLE %s ("                           \
   "id      TEXT PRIMARY KEY, "                     \
   "parent  TEXT REFERENCES %s (id), "              \
   "updated DATE, "                                 \
-  "media   TEXT)"
+  "media   TEXT"
+
+#define GRL_CACHE_CREATE_CACHE_FIELD            \
+  ", %s %s"
+
+#define GRL_CACHE_CREATE_CACHE_END              \
+  ")"
 
 #define GRL_CACHE_REMOVE_CACHE                  \
   "DROP TABLE %s"
@@ -63,10 +70,13 @@ GRL_LOG_DOMAIN(media_cache_log_domain);
   "SELECT name FROM sqlite_master "             \
   "WHERE type='table' AND name='%s'"
 
+#define GRL_CACHE_DESC_CACHE                    \
+  "PRAGMA table_info(%s)"
+
 #define GRL_CACHE_INSERT_ELEMENT                \
   "INSERT OR REPLACE INTO %s "                  \
-  "(id, parent, updated, media) VALUES "        \
-  "(?, ?, ?, ?)"
+  "(id, parent, updated, media%s) VALUES "      \
+  "(?, ?, ?, ?%s)"
 
 #define GRL_CACHE_GET_ELEMENT                   \
   "SELECT parent, updated, media from %s "      \
@@ -80,6 +90,7 @@ enum {
 
 struct _GrlMediaCachePrivate {
   gchar *cache_id;
+  GList *extra_keys;
   gboolean persistent;
   gboolean force_db_removal;
   sqlite3 *db;
@@ -162,6 +173,7 @@ grl_media_cache_finalize (GObject *object)
 
   sqlite3_close (cache->priv->db);
   g_free (cache->priv->cache_id);
+  g_list_free (cache->priv->extra_keys);
 
   G_OBJECT_CLASS (grl_media_cache_parent_class)->finalize (object);
 }
@@ -220,11 +232,16 @@ create_connection ()
 }
 
 static sqlite3 *
-create_table (const gchar *name, gboolean persistent)
+create_table (const gchar *name, GList *keys, GList **filtered_keys, gboolean persistent)
 {
+  GString *sql_build;
+  gchar *sql_begin;
   gchar *sql_error = NULL;
   gchar *sql_sentence;
+  gchar *sql_type;
   sqlite3 *db;
+
+  g_return_val_if_fail (filtered_keys, NULL);
 
   db = create_connection ();
   if (!db) {
@@ -232,9 +249,43 @@ create_table (const gchar *name, gboolean persistent)
   }
 
   /* Create the table */
-  sql_sentence = g_strdup_printf (GRL_CACHE_CREATE_CACHE,
-                                  persistent? "": "TEMPORARY",
-                                  name, name);
+  sql_begin = g_strdup_printf (GRL_CACHE_CREATE_CACHE_BEGIN,
+                               persistent? "": "TEMPORARY",
+                               name, name);
+
+  if (keys) {
+    sql_build = g_string_new (sql_begin);
+    g_free (sql_begin);
+    while (keys) {
+      switch (GRL_METADATA_KEY_GET_TYPE (keys->data)) {
+      case G_TYPE_INT:
+        sql_type = "INT";
+        break;
+      case G_TYPE_STRING:
+        sql_type = "TEXT";
+        break;
+      case G_TYPE_FLOAT:
+        sql_type = "REAL";
+        break;
+      default:
+        sql_type = NULL;
+        break;
+      }
+      if (sql_type) {
+        *filtered_keys = g_list_prepend (*filtered_keys, keys->data);
+        g_string_append_printf (sql_build,
+                                GRL_CACHE_CREATE_CACHE_FIELD,
+                                grl_metadata_key_get_name (keys->data),
+                                sql_type);
+      }
+      keys = keys->next;
+    }
+    g_string_append (sql_build, GRL_CACHE_CREATE_CACHE_END);
+    sql_sentence = g_string_free (sql_build, FALSE);
+  } else {
+    sql_sentence = g_strconcat (sql_begin, GRL_CACHE_CREATE_CACHE_END, NULL);
+  }
+
   if (sqlite3_exec (db, sql_sentence, NULL, NULL, &sql_error) != SQLITE_OK) {
     if (sql_error) {
       GRL_WARNING ("Failed to create cache '%s': %s", name, sql_error);
@@ -310,12 +361,62 @@ check_table (const gchar *name)
   }
 }
 
+static GList *
+get_table_extra_keys (sqlite3 *db, const gchar *name)
+{
+  GList *extra_keys = NULL;
+  GrlKeyID key;
+  GrlPluginRegistry *registry;
+  gchar *key_name;
+  gchar *sql_sentence;
+  gint r, i;
+  sqlite3_stmt *sql_stmt;
+
+  sql_sentence = g_strdup_printf (GRL_CACHE_DESC_CACHE, name);
+
+  if (sqlite3_prepare_v2 (db,
+                          sql_sentence,
+                          strlen (sql_sentence),
+                          &sql_stmt, NULL) != SQLITE_OK) {
+    g_free (sql_sentence);
+    return NULL;
+  }
+
+  g_free (sql_sentence);
+
+  /* Wait until it finishes */
+  while ((r = sqlite3_step (sql_stmt)) == SQLITE_BUSY);
+
+  /* Skip the first 4 fields; already known */
+  while (r == SQLITE_ROW && i < 4) {
+    r = sqlite3_step (sql_stmt);
+    i++;
+  }
+
+  registry = grl_plugin_registry_get_default ();
+
+  while (r == SQLITE_ROW) {
+    /* Get field */
+    key_name = (gchar *) sqlite3_column_text (sql_stmt, 1);
+    key = grl_plugin_registry_lookup_metadata_key (registry, key_name);
+    if (key) {
+      extra_keys = g_list_prepend (extra_keys, key);
+    }
+    r = sqlite3_step (sql_stmt);
+  }
+
+  sqlite3_finalize (sql_stmt);
+
+  return extra_keys;
+}
+
 /* ================ API ================ */
 
 
 GrlMediaCache *
-grl_media_cache_new (void)
+grl_media_cache_new (GList *keys)
 {
+  GList *filtered_keys = NULL;
   GrlMediaCache *cache = NULL;
   gchar *cache_id;
   sqlite3 *db;
@@ -326,11 +427,12 @@ grl_media_cache_new (void)
   cache_id = g_strdup_printf (GRL_CACHE_PATTERN, g_random_int ());
 
   /* Create the cache */
-  db = create_table (cache_id, FALSE);
+  db = create_table (cache_id, keys, &filtered_keys, FALSE);
 
   if (db) {
     cache = g_object_new (GRL_TYPE_MEDIA_CACHE, NULL);
     cache->priv->cache_id = cache_id;
+    cache->priv->extra_keys = filtered_keys;
     cache->priv->db = db;
   } else {
     g_free (cache_id);
@@ -340,8 +442,9 @@ grl_media_cache_new (void)
 }
 
 GrlMediaCache *
-grl_media_cache_new_persistent (const gchar *cache_id)
+grl_media_cache_new_persistent (const gchar *cache_id, GList *keys)
 {
+  GList *filtered_keys = NULL;
   GrlMediaCache *cache = NULL;
   sqlite3 *db;
 
@@ -350,11 +453,12 @@ grl_media_cache_new_persistent (const gchar *cache_id)
   GRL_DEBUG (__FUNCTION__);
 
   /* Create the cache */
-  db = create_table (cache_id, TRUE);
+  db = create_table (cache_id, keys, &filtered_keys, TRUE);
 
   if (db) {
     cache = g_object_new (GRL_TYPE_MEDIA_CACHE, NULL);
     cache->priv->cache_id = g_strdup (cache_id);
+    cache->priv->extra_keys = filtered_keys;
     cache->priv->persistent = TRUE;
     cache->priv->db = db;
   }
@@ -377,6 +481,7 @@ grl_media_cache_load_persistent (const gchar *cache_id)
   if (db) {
     cache = g_object_new (GRL_TYPE_MEDIA_CACHE, NULL);
     cache->priv->cache_id = g_strdup (cache_id);
+    cache->priv->extra_keys = get_table_extra_keys (db, cache_id);
     cache->priv->persistent = TRUE;
     cache->priv->db = db;
   }
@@ -402,11 +507,16 @@ grl_media_cache_insert_media (GrlMediaCache *cache,
                               const gchar *parent,
                               GError **error)
 {
+  GList *key;
+  GString *extra_header_str;
+  GString *extra_value_str;
   GTimeVal now;
+  gchar *extra_header;
+  gchar *extra_value;
   gchar *now_str;
   gchar *serial_media;
   gchar *sql_sentence;
-  gint r;
+  gint r, i;
   sqlite3_stmt *sql_stmt;
 
   g_return_val_if_fail (GRL_IS_MEDIA_CACHE (cache), FALSE);
@@ -415,8 +525,26 @@ grl_media_cache_insert_media (GrlMediaCache *cache,
   GRL_DEBUG (__FUNCTION__);
 
   /* Prepare the sentence */
+  extra_header_str = g_string_new ("");
+  extra_value_str = g_string_new ("");
+  key = cache->priv->extra_keys;
+  while (key) {
+    g_string_append_printf (extra_header_str,
+                            ", %s",
+                            grl_metadata_key_get_name (key->data));
+    g_string_append (extra_value_str, ", ?");
+    key = key->next;
+  }
+  extra_header = g_string_free (extra_header_str, FALSE);
+  extra_value = g_string_free (extra_value_str, FALSE);
+
   sql_sentence = g_strdup_printf (GRL_CACHE_INSERT_ELEMENT,
-                                  cache->priv->cache_id);
+                                  cache->priv->cache_id,
+                                  extra_header,
+                                  extra_value);
+
+  g_free (extra_header);
+  g_free (extra_value);
 
   if (sqlite3_prepare_v2 (cache->priv->db,
                           sql_sentence,
@@ -439,6 +567,31 @@ grl_media_cache_insert_media (GrlMediaCache *cache,
 
   g_free (serial_media);
   g_free (now_str);
+
+  i = 5;
+  key = cache->priv->extra_keys;
+  while (key) {
+    switch (GRL_METADATA_KEY_GET_TYPE (key->data)) {
+    case G_TYPE_INT:
+      sqlite3_bind_int (sql_stmt,
+                        i,
+                        grl_data_get_int (GRL_DATA (media), key->data));
+      break;
+    case G_TYPE_FLOAT:
+      sqlite3_bind_double (sql_stmt,
+                           i,
+                           (double) grl_data_get_float (GRL_DATA (media), key->data));
+      break;
+    default:
+      sqlite3_bind_text (sql_stmt,
+                         i,
+                         grl_data_get_string (GRL_DATA (media), key->data),
+                         -1, SQLITE_STATIC);
+      break;
+    }
+    key = key->next;
+    i++;
+  }
 
   /* Wait until it finish */
   while ((r = sqlite3_step (sql_stmt)) == SQLITE_BUSY);

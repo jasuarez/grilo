@@ -88,9 +88,9 @@ G_BEGIN_DECLS
 
 GType grl_media_cache_get_type (void);
 
-GrlMediaCache *grl_media_cache_new (void);
+GrlMediaCache *grl_media_cache_new (GList *keys);
 
-GrlMediaCache *grl_media_cache_new_persistent (const gchar *cache_id);
+GrlMediaCache *grl_media_cache_new_persistent (const gchar *cache_id, GList *keys);
 
 GrlMediaCache *grl_media_cache_load_persistent (const gchar *cache_id);
 
