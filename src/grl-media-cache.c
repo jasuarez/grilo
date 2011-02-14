@@ -82,6 +82,10 @@ GRL_LOG_DOMAIN(media_cache_log_domain);
   "SELECT parent, updated, media from %s "      \
   "WHERE id='%s' "
 
+#define GRL_CACHE_SEARCH                        \
+  "SELECT cache.media from %s cache "           \
+  "%s %s"
+
 enum {
   PROP_0,
   PROP_CACHE_ID,
@@ -684,4 +688,63 @@ grl_media_cache_get_media (GrlMediaCache *cache,
                media_id,
                cache->priv->cache_id);
   return FALSE;
+}
+
+GList *
+grl_media_cache_search (GrlMediaCache *cache,
+                        const gchar *condition,
+                        GError **error)
+{
+  GList *medias = NULL;
+  gchar *sql_sentence;
+  gint r;
+  sqlite3_stmt *sql_stmt;
+
+  g_return_val_if_fail (GRL_IS_MEDIA_CACHE (cache), NULL);
+
+  sql_sentence = g_strdup_printf (GRL_CACHE_SEARCH,
+                                  cache->priv->cache_id,
+                                  condition? "WHERE": "",
+                                  condition? condition: "");
+
+  if (sqlite3_prepare_v2 (cache->priv->db,
+                          sql_sentence,
+                          strlen (sql_sentence),
+                          &sql_stmt,
+                          NULL) != SQLITE_OK) {
+    g_free (sql_sentence);
+    goto error;
+  }
+
+  g_free (sql_sentence);
+
+  /* Wait until it finish */
+  while ((r = sqlite3_step (sql_stmt)) == SQLITE_BUSY);
+
+  if (r == SQLITE_ERROR) {
+    sqlite3_finalize (sql_stmt);
+    goto error;
+  }
+
+  while (r == SQLITE_ROW) {
+    medias =
+      g_list_prepend (medias,
+                      grl_media_unserialize ((const gchar *) sqlite3_column_text (sql_stmt, 0)));
+    r = sqlite3_step (sql_stmt);
+  }
+
+  sqlite3_finalize (sql_stmt);
+
+  return medias;
+
+ error:
+  GRL_WARNING ("Failed to search in cache '%s': %s",
+               cache->priv->cache_id,
+               sqlite3_errmsg (cache->priv->db));
+  g_set_error (error,
+               GRL_CORE_ERROR,
+               GRL_CORE_ERROR_CACHE_FAILED,
+               "Unable to query cache '%s'",
+               cache->priv->cache_id);
+  return NULL;
 }
