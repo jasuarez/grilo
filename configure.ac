@@ -93,8 +93,7 @@ PKG_CHECK_MODULES(DEPS, glib-2.0 >= 2.22 \
 			gobject-2.0 \
 			gmodule-2.0 \
 			gio-2.0 \
-			libxml-2.0 \
-                        sqlite3)
+			libxml-2.0)
 
 GLIB_GENMARSHAL=`pkg-config --variable=glib_genmarshal glib-2.0`
 GLIB_MKENUMS=`pkg-config --variable=glib_mkenums glib-2.0`
@@ -135,6 +134,14 @@ AC_ARG_ENABLE([grl_net],
         ])
 
 AM_CONDITIONAL(BUILD_GRILO_NET, test "x$HAVE_LIBSOUP" = "xyes")
+
+# media cache library
+
+PKG_CHECK_MODULES(MEDIA_CACHE, sqlite3,
+                         HAVE_SQLITE3=yes,
+                         HAVE_SQLITE3=no)
+
+AM_CONDITIONAL(BUILD_GRILO_MEDIA_CACHE, test "x$HAVE_SQLITE3" = "xyes")
 
 # ----------------------------------------------------------
 # DEBUG SUPPORT
@@ -253,12 +260,15 @@ AC_CONFIG_FILES([
   grilo-0.1.pc
   grilo-net-uninstalled.pc
   grilo-net-0.1.pc
+  grilo-media-cache-uninstalled.pc
+  grilo-media-cache-0.1.pc
   src/Makefile
   tests/Makefile
   tests/python/Makefile
   tests/python/util.py
   libs/Makefile
   libs/net/Makefile
+  libs/media-cache/Makefile
   tools/Makefile
   tools/grilo-test-ui/Makefile
   tools/grilo-inspect/Makefile

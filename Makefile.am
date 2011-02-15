@@ -24,6 +24,10 @@ if BUILD_GRILO_NET
 pkgconfig_DATA += grilo-net-0.1.pc
 endif
 
+if BUILD_GRILO_MEDIA_CACHE
+pkgconfig_DATA += grilo-media-cache-0.1.pc
+endif
+
 MAINTAINERCLEANFILES = \
         aclocal.m4 \
         compile \

@@ -33,10 +33,7 @@
 #include <sqlite3.h>
 #include <string.h>
 
-#include "grl-error.h"
-#include "grl-log.h"
 #include "grl-media-cache.h"
-#include "grl-plugin-registry.h"
 
 #define GRL_LOG_DOMAIN_DEFAULT media_cache_log_domain
 GRL_LOG_DOMAIN(media_cache_log_domain);

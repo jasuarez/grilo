@@ -11,7 +11,11 @@ if BUILD_GRILO_NET
 SUBDIRS += net
 endif
 
-DIST_SUBDIRS = net
+if BUILD_GRILO_MEDIA_CACHE
+SUBDIRS += media-cache
+endif
+
+DIST_SUBDIRS = net media-cache
 
 MAINTAINERCLEANFILES = \
 	*.in \

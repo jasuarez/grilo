@@ -20,18 +20,12 @@
  *
  */
 
-#if !defined (_GRILO_H_INSIDE_) && !defined (GRILO_COMPILATION)
-#error "Only <grilo.h> can be included directly."
-#endif
-
 #ifndef _GRL_MEDIA_CACHE_H_
 #define _GRL_MEDIA_CACHE_H_
 
 #include <glib.h>
 #include <glib-object.h>
-
-#include "grl-definitions.h"
-#include "grl-media.h"
+#include <grilo.h>
 
 /* Macros */
 
