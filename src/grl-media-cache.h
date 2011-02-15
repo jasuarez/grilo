@@ -111,6 +111,10 @@ GList * grl_media_cache_search (GrlMediaCache *cache,
                                 const gchar *condition,
                                 GError **error);
 
+gboolean grl_media_cache_remove (GrlMediaCache *cache,
+                                 const gchar *condition,
+                                 GError **error);
+
 G_END_DECLS
 
 #endif /* _GRL_MEDIA_CACHE_H_ */

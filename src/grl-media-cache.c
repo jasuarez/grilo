@@ -86,6 +86,10 @@ GRL_LOG_DOMAIN(media_cache_log_domain);
   "SELECT cache.media from %s cache "           \
   "%s %s"
 
+#define GRL_CACHE_REMOVE_ELEMENTS               \
+  "DELETE FROM %s "                             \
+  "%s %s"
+
 enum {
   PROP_0,
   PROP_CACHE_ID,
@@ -769,4 +773,61 @@ grl_media_cache_search (GrlMediaCache *cache,
                "Unable to query cache '%s'",
                cache->priv->cache_id);
   return NULL;
+}
+
+gboolean
+grl_media_cache_remove (GrlMediaCache *cache,
+                        const gchar *condition,
+                        GError **error)
+{
+  gchar *sql_sentence;
+  gint r;
+  sqlite3_stmt *sql_stmt;
+
+  g_return_val_if_fail (GRL_IS_MEDIA_CACHE (cache), FALSE);
+
+  sql_sentence = g_strdup_printf (GRL_CACHE_REMOVE_ELEMENTS,
+                                  cache->priv->cache_id,
+                                  condition? "WHERE": "",
+                                  condition? condition: "");
+
+  /* Begin a transaction */
+  if (!cache->priv->on_transaction) {
+    sqlite3_exec(cache->priv->db, "BEGIN", 0, 0, 0);
+    cache->priv->on_transaction = TRUE;
+  }
+
+  if (sqlite3_prepare_v2 (cache->priv->db,
+                          sql_sentence,
+                          strlen (sql_sentence),
+                          &sql_stmt,
+                          NULL) != SQLITE_OK) {
+    g_free (sql_sentence);
+    goto error;
+  }
+
+  g_free (sql_sentence);
+
+  /* Wait until it finishes */
+  while ((r = sqlite3_step (sql_stmt)) == SQLITE_BUSY);
+
+  if (r != SQLITE_DONE) {
+    sqlite3_finalize (sql_stmt);
+    goto error;
+  }
+
+  sqlite3_finalize (sql_stmt);
+
+  return TRUE;
+
+ error:
+  GRL_WARNING ("Failed to remove from cache '%s': %s",
+               cache->priv->cache_id,
+               sqlite3_errmsg (cache->priv->db));
+  g_set_error (error,
+               GRL_CORE_ERROR,
+               GRL_CORE_ERROR_CACHE_FAILED,
+               "Unable to remove from cache '%s'",
+               cache->priv->cache_id);
+  return FALSE;
 }
