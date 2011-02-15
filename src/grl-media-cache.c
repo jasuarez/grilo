@@ -128,6 +128,11 @@ grl_media_cache_class_init (GrlMediaCacheClass *cache_class)
 
   gobject_class->get_property = grl_media_cache_get_property;
 
+  /**
+   * GrlMediaCache::cache-id
+   *
+   * Cache identifier.
+   */
   g_object_class_install_property (gobject_class,
                                    PROP_CACHE_ID,
                                    g_param_spec_string ("cache-id",
@@ -137,6 +142,11 @@ grl_media_cache_class_init (GrlMediaCacheClass *cache_class)
                                                         G_PARAM_READABLE |
                                                         G_PARAM_STATIC_STRINGS));
 
+  /**
+   * GrlMediaCache::persistent
+   *
+   * %TRUE if cache is persistent
+   */
   g_object_class_install_property (gobject_class,
                                    PROP_PERSISTENT,
                                    g_param_spec_boolean ("persistent",
@@ -201,6 +211,7 @@ grl_media_cache_get_property (GObject *object,
 
 /* ================ Utilities ================ */
 
+/* Returns a connection to cache DB */
 static sqlite3 *
 create_connection ()
 {
@@ -230,6 +241,8 @@ create_connection ()
   return db;
 }
 
+/* Creates a table that allows to search on "keys" properties. Valid keys are
+   returned in "filtered_keys". */
 static sqlite3 *
 create_table (const gchar *name, GList *keys, GList **filtered_keys, gboolean persistent)
 {
@@ -300,6 +313,7 @@ create_table (const gchar *name, GList *keys, GList **filtered_keys, gboolean pe
   return db;
 }
 
+/* Remove table from DB */
 static void
 remove_table (sqlite3 *db,
               const gchar *name)
@@ -320,6 +334,7 @@ remove_table (sqlite3 *db,
   g_free (sql_sentence);
 }
 
+/* Checks if table exists in DB and, if so, then returns a connection */
 static sqlite3 *
 check_table (const gchar *name)
 {
@@ -360,6 +375,7 @@ check_table (const gchar *name)
   }
 }
 
+/* Get the extra keys stored in table */
 static GList *
 get_table_extra_keys (sqlite3 *db, const gchar *name)
 {
@@ -411,7 +427,20 @@ get_table_extra_keys (sqlite3 *db, const gchar *name)
 
 /* ================ API ================ */
 
-
+/**
+ * grl_media_cache_new:
+ * @keys: (element-type GObject.ParamSpec): list of keys that can be used for future search
+ *
+ * Creates a non-persistent cache.
+ *
+ * @keys contains the list of metadata keys that can be used to perform searches
+ * in the cache.
+ *
+ * Only those metadata keys of type int, float or string are valid. Remaining
+ * will be discarded.
+ *
+ * Returns: a new cache
+ **/
 GrlMediaCache *
 grl_media_cache_new (GList *keys)
 {
@@ -441,6 +470,23 @@ grl_media_cache_new (GList *keys)
   return cache;
 }
 
+/**
+ * grl_media_cache_new_persistent:
+ * @cache_id: identifier for the cache
+ * @keys: (element-type GObject.ParamSpec): list of keys that can be used for future search
+ *
+ * Creates a persistent cache.
+ *
+ * @cache_id should only contain numbers, letters, and "_" sign.
+ *
+ * @keys contains the list of metadata keys that can be used to perform searches
+ * in the cache.
+ *
+ * Only those metadata keys of type int, float or string are valid. Remaining
+ * will be discarded.
+ *
+ * Returns: a new cache
+ **/
 GrlMediaCache *
 grl_media_cache_new_persistent (const gchar *cache_id, GList *keys)
 {
@@ -467,6 +513,14 @@ grl_media_cache_new_persistent (const gchar *cache_id, GList *keys)
   return cache;
 }
 
+/**
+ * grl_media_cache_load_persistent:
+ * @cache_id: cache identifier
+ *
+ * Recovers a persistent cache.
+ *
+ * Returns: the cache
+ **/
 GrlMediaCache *
 grl_media_cache_load_persistent (const gchar *cache_id)
 {
@@ -491,6 +545,14 @@ grl_media_cache_load_persistent (const gchar *cache_id)
   return cache;
 }
 
+/**
+ * grl_media_cache_destroy:
+ * @cache: cache identifier
+ *
+ * Destroyes cache.
+ *
+ * Cache is actually destroyed when refcount reaches 0.
+ **/
 void
 grl_media_cache_destroy (GrlMediaCache *cache)
 {
@@ -503,6 +565,20 @@ grl_media_cache_destroy (GrlMediaCache *cache)
   g_object_unref (cache);
 }
 
+/**
+ * grl_media_cache_insert_media:
+ * @cache: cache identifier
+ * @media: the media to be inserted
+ * @parent: identifier of media's parent
+ * @error: error return location or @NULL to ignore
+ *
+ * Insert a new #GrlMedia into the cache.
+ *
+ * In order to create relations between cached elements, @parent can be used to
+ * specify the media's parent.
+ *
+ * Returns: %TRUE on success
+ **/
 gboolean
 grl_media_cache_insert_media (GrlMediaCache *cache,
                               GrlMedia *media,
@@ -625,6 +701,23 @@ grl_media_cache_insert_media (GrlMediaCache *cache,
   return FALSE;
 }
 
+/**
+ * grl_media_cache_get_media:
+ * @cache: cache identifier
+ * @media_id: media identifier to be recovered
+ * @parent: media's parent return location or @NULL to ignore
+ * @last_time_changed: changed time return location or @NULL to ignore
+ * @error: error return location or @NULL to ignore
+ *
+ * Returns a cached media.
+ *
+ * If @parent is not @NULL it will contain the media's parent identifier.
+ *
+ * If @last_time_changed is not @NULL, it will contain when the media was
+ * inserted (or changed) for last time in the cache.
+ *
+ * Returns: a cached media, or @NULL if not found.
+ **/
 GrlMedia *
 grl_media_cache_get_media (GrlMediaCache *cache,
                            const gchar *media_id,
@@ -700,6 +793,24 @@ grl_media_cache_get_media (GrlMediaCache *cache,
   return FALSE;
 }
 
+/**
+ * grl_media_cache_search:
+ * @cache: cache identifier
+ * @condition: (allow-none): a SQL WHERE clause condition
+ * @error: error return location or @NULL to ignore
+ *
+ * Searches all #GrlMedia in cache that satisfies @condition.
+ *
+ * The condition is a SQL WHERE clause that can involve the keys specified when cache where created. Besides this keys, "id", "parent" and "updated" (last time the media was updated in cache in ISO8601 format) can be used too.
+ *
+ * For example, if cache were created using "album" and "artist" keys, a search like
+ *
+ *    grl_media_cache_search (cache, "artist like 'madonna'");
+ *
+ * will return all cached #GrlMedia with artist madonna.
+ *
+ * Returns: (element-type Grl.Media): a list of cached #GrlMedia
+ **/
 GList *
 grl_media_cache_search (GrlMediaCache *cache,
                         const gchar *condition,
@@ -765,6 +876,18 @@ grl_media_cache_search (GrlMediaCache *cache,
   return NULL;
 }
 
+/**
+ * grl_media_cache_remove:
+ * @cache: cache identifier
+ * @condition: (allow-none): a SQL WHERE clause condition
+ * @error: error return location or @NULL to ignore
+ *
+ * Removes all cached #GrlMedia that satisfies a condition.
+ *
+ * For more information about @condition, see #grl_media_cache_search.
+ *
+ * Returns: %TRUE on successs.
+ **/
 gboolean
 grl_media_cache_remove (GrlMediaCache *cache,
                         const gchar *condition,
