@@ -107,8 +107,6 @@ struct _GrlMediaCachePrivate {
 
 static void grl_media_cache_finalize (GObject *object);
 
-static void grl_media_cache_dispose (GObject *object);
-
 static void grl_media_cache_get_property (GObject *object,
                                           guint prop_id,
                                           GValue *value,
@@ -127,7 +125,6 @@ grl_media_cache_class_init (GrlMediaCacheClass *cache_class)
   gobject_class = G_OBJECT_CLASS (cache_class);
 
   gobject_class->finalize = grl_media_cache_finalize;
-  gobject_class->dispose  = grl_media_cache_dispose;
 
   gobject_class->get_property = grl_media_cache_get_property;
 
@@ -159,13 +156,6 @@ static void
 grl_media_cache_init (GrlMediaCache *cache)
 {
   cache->priv = GRL_MEDIA_CACHE_GET_PRIVATE (cache);
-}
-
-static void
-grl_media_cache_dispose (GObject *object)
-{
-  /* Unref all gobject elements */
-  /* Careful: it can be invoked several times */
 }
 
 static void
