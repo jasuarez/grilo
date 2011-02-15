@@ -426,6 +426,7 @@ grl_media_cache_new (GList *keys)
   gchar *cache_id;
   sqlite3 *db;
 
+  GRL_LOG_DOMAIN_INIT (media_cache_log_domain, "grl-media-cache");
   GRL_DEBUG (__FUNCTION__);
 
   /* Get a name */
@@ -455,6 +456,7 @@ grl_media_cache_new_persistent (const gchar *cache_id, GList *keys)
 
   g_return_val_if_fail (cache_id, NULL);
 
+  GRL_LOG_DOMAIN_INIT (media_cache_log_domain, "grl-media-cache");
   GRL_DEBUG (__FUNCTION__);
 
   /* Create the cache */
@@ -479,6 +481,7 @@ grl_media_cache_load_persistent (const gchar *cache_id)
 
   g_return_val_if_fail (cache_id, NULL);
 
+  GRL_LOG_DOMAIN_INIT (media_cache_log_domain, "grl-media-cache");
   GRL_DEBUG (__FUNCTION__);
 
   db = check_table (cache_id);
