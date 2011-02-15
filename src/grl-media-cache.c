@@ -95,6 +95,7 @@ enum {
 struct _GrlMediaCachePrivate {
   gchar *cache_id;
   GList *extra_keys;
+  gboolean on_transaction;
   gboolean persistent;
   gboolean force_db_removal;
   sqlite3 *db;
@@ -550,6 +551,12 @@ grl_media_cache_insert_media (GrlMediaCache *cache,
   g_free (extra_header);
   g_free (extra_value);
 
+  /* Begin a transaction */
+  if (!cache->priv->on_transaction) {
+    sqlite3_exec(cache->priv->db, "BEGIN", 0, 0, 0);
+    cache->priv->on_transaction = TRUE;
+  }
+
   if (sqlite3_prepare_v2 (cache->priv->db,
                           sql_sentence,
                           strlen (sql_sentence),
@@ -642,6 +649,12 @@ grl_media_cache_get_media (GrlMediaCache *cache,
                                   cache->priv->cache_id,
                                   media_id);
 
+  /* Finish pending transactions */
+  if (cache->priv->on_transaction) {
+    sqlite3_exec(cache->priv->db, "COMMIT", 0, 0, 0);
+    cache->priv->on_transaction = FALSE;
+  }
+
   if (sqlite3_prepare_v2 (cache->priv->db,
                           sql_sentence,
                           strlen (sql_sentence),
@@ -706,6 +719,12 @@ grl_media_cache_search (GrlMediaCache *cache,
                                   cache->priv->cache_id,
                                   condition? "WHERE": "",
                                   condition? condition: "");
+
+  /* Finish pending transactions */
+  if (cache->priv->on_transaction) {
+    sqlite3_exec(cache->priv->db, "COMMIT", 0, 0, 0);
+    cache->priv->on_transaction = FALSE;
+  }
 
   if (sqlite3_prepare_v2 (cache->priv->db,
                           sql_sentence,
