@@ -29,7 +29,7 @@
 #ifndef _GRL_MEDIA_H_
 #define _GRL_MEDIA_H_
 
-#include <grl-data.h>
+#include <grl-data-multi.h>
 #include <grl-definitions.h>
 
 G_BEGIN_DECLS
@@ -85,7 +85,7 @@ typedef struct _GrlMediaClass GrlMediaClass;
  */
 struct _GrlMediaClass
 {
-  GrlDataClass parent_class;
+  GrlDataMultiClass parent_class;
 
   /*< private >*/
   gpointer _grl_reserved[GRL_PADDING];
@@ -93,7 +93,7 @@ struct _GrlMediaClass
 
 struct _GrlMedia
 {
-  GrlData parent;
+  GrlDataMulti parent;
 
   /*< private >*/
   gpointer _grl_reserved[GRL_PADDING_SMALL];
