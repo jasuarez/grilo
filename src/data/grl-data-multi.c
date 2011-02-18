@@ -148,20 +148,25 @@ grl_data_multi_add (GrlDataMulti *mdata,
   l = grl_data_multi_length (mdata, keys->data);
 
   if (l > 0) {
-    /* Add it in extended data */
+    /* Get the representative element of key */
     registry = grl_plugin_registry_get_default ();
-    related_keys = grl_plugin_registry_lookup_metadata_relation (registry,
-                                                                 keys->data);
-    while (related_keys) {
-      values = g_hash_table_lookup (mdata->priv->extended_data,
-                                    related_keys->data);
-      values = g_list_append (values, g_object_ref (prop));
-      g_hash_table_insert (mdata->priv->extended_data,
-                           related_keys->data,
-                           values);
-      related_keys = g_list_next (related_keys);
+    related_keys =
+      grl_plugin_registry_lookup_metadata_key_relation (registry,
+                                                        keys->data);
+
+    if (!related_keys) {
+      GRL_WARNING ("Related keys not found for key: %s",
+                   grl_metadata_key_get_name (related_keys->data));
+      g_list_free (keys);
+      return;
     }
-    g_list_free (keys);
+
+    values = g_hash_table_lookup (mdata->priv->extended_data,
+                                  related_keys->data);
+    values = g_list_append (values, prop);
+    g_hash_table_insert (mdata->priv->extended_data,
+                         related_keys->data,
+                         values);
   } else {
     /* Insert it as single valued data */
     for (key = keys; key; key = g_list_next (key)) {
@@ -169,9 +174,9 @@ grl_data_multi_add (GrlDataMulti *mdata,
                     key->data,
                     grl_data_get (GRL_DATA (prop), key->data));
     }
-    g_list_free (keys);
+    g_object_unref (prop);
   }
-  g_object_unref (prop);
+  g_list_free (keys);
 }
 
 /**
@@ -194,13 +199,23 @@ grl_data_multi_length (GrlDataMulti *mdata,
 
   g_return_val_if_fail (GRL_IS_DATA_MULTI (mdata), 0);
 
+  /* Get the representative element of key */
+  registry = grl_plugin_registry_get_default ();
+  related_keys = grl_plugin_registry_lookup_metadata_key_relation (registry,
+                                                                   key);
+
+  if (!related_keys) {
+    GRL_WARNING ("Related keys not found for key: %s",
+                 grl_metadata_key_get_name (related_keys->data));
+    return 0;
+  }
+
   /* Check first extended data */
   length = g_list_length (g_hash_table_lookup (mdata->priv->extended_data,
-                                               key));
+                                               related_keys->data));
   if (length == 0) {
-    /* Check if we can find the information in data */
-    registry = grl_plugin_registry_get_default ();
-    related_keys = grl_plugin_registry_lookup_metadata_relation (registry, key);
+    /* Check if we can find the information in data. It is a success if there is
+       at least one value for one of the related keys */
     while (related_keys && !found) {
       found = grl_data_key_is_known (GRL_DATA (mdata), related_keys->data);
       related_keys = g_list_next (related_keys);
@@ -239,10 +254,23 @@ grl_data_multi_get (GrlDataMulti *mdata,
 
   g_return_val_if_fail (GRL_IS_DATA_MULTI (mdata), NULL);
 
+  /* Get the representative element of key */
+  registry = grl_plugin_registry_get_default ();
+  related_keys = grl_plugin_registry_lookup_metadata_key_relation (registry,
+                                                                   key);
+
+  if (!related_keys) {
+    GRL_WARNING ("Related keys not found for key: %s",
+                 grl_metadata_key_get_name (related_keys->data));
+    return NULL;
+  }
+
   if (pos == 0) {
     collect_from = GRL_DATA (mdata);
   } else {
-    list_el = g_list_nth (g_hash_table_lookup (mdata->priv->extended_data, key), pos - 1);
+    list_el = g_list_nth (g_hash_table_lookup (mdata->priv->extended_data,
+                                               related_keys->data),
+                          pos - 1);
     if (list_el) {
       collect_from = GRL_DATA (list_el->data);
     } else {
@@ -251,11 +279,11 @@ grl_data_multi_get (GrlDataMulti *mdata,
   }
 
   if (collect_from) {
-    registry = grl_plugin_registry_get_default ();
-    related_keys = grl_plugin_registry_lookup_metadata_relation (registry, key);
     prop = grl_property_new ();
     while (related_keys) {
-      grl_data_set (GRL_DATA (prop), key, grl_data_get (collect_from, key));
+      grl_data_set (GRL_DATA (prop),
+                    related_keys->data,
+                    grl_data_get (collect_from, related_keys->data));
       related_keys = g_list_next (related_keys);
     }
   }
@@ -285,19 +313,25 @@ grl_data_multi_remove (GrlDataMulti *mdata,
 
   g_return_if_fail (GRL_IS_DATA_MULTI (mdata));
 
+  /* Get the representative element of key */
+  registry = grl_plugin_registry_get_default ();
+  related_keys = grl_plugin_registry_lookup_metadata_key_relation (registry,
+                                                                   key);
+
+  if (!related_keys) {
+    GRL_WARNING ("Related keys not found for key: %s",
+                 grl_metadata_key_get_name (related_keys->data));
+    return;
+  }
+
   /* If element to remove is in position 0 (single-data), then we can replace it
      by value in pos 1 (extended-data) and then remove 1. If element to remove
      is >0 then we must remove it and shift values the empty position */
 
-  if (pos < 2) {
-    /* For sure related keys will be needed */
-    registry = grl_plugin_registry_get_default ();
-    related_keys = grl_plugin_registry_lookup_metadata_relation (registry, key);
-  }
-
   if (pos == 0) {
     prop_at_1 = grl_data_multi_get (mdata, key, 1);
     if (prop_at_1) {
+      /* Replace related keys in pos 0 */
       for (rel_key = related_keys; rel_key; rel_key = g_list_next (rel_key)) {
         grl_data_set (GRL_DATA (mdata),
                       rel_key->data,
@@ -313,7 +347,8 @@ grl_data_multi_remove (GrlDataMulti *mdata,
   }
 
   if (pos > 0) {
-    list_values = g_hash_table_lookup (mdata->priv->extended_data, key);
+    list_values = g_hash_table_lookup (mdata->priv->extended_data,
+                                       related_keys->data);
     to_remove = g_list_nth (list_values, pos - 1);
     if (!to_remove) {
       /* Wrong index; ignore */
@@ -322,15 +357,9 @@ grl_data_multi_remove (GrlDataMulti *mdata,
 
     g_object_unref (to_remove->data);
     list_values = g_list_delete_link (list_values, to_remove);
-    if (pos == 1) {
-      /* Removed the head of extended-data; we need to update all related keys
-         to point to the new header */
-      for (rel_key = related_keys; rel_key; rel_key = g_list_next (rel_key)) {
-        g_hash_table_insert (mdata->priv->extended_data,
-                             rel_key->data,
-                             list_values);
-      }
-    }
+    g_hash_table_insert (mdata->priv->extended_data,
+                         related_keys->data,
+                         list_values);
   }
 }
 
@@ -365,10 +394,18 @@ grl_data_multi_update (GrlDataMulti *mdata,
     return;
   }
 
+  /* Get the representative element of key */
+  registry = grl_plugin_registry_get_default ();
+  related_keys = grl_plugin_registry_lookup_metadata_key_relation (registry,
+                                                                   keys->data);
+
+  if (!related_keys) {
+    GRL_WARNING ("Related keys not found for key: %s",
+                 grl_metadata_key_get_name (related_keys->data));
+    return;
+  }
+
   if (pos == 0) {
-    registry = grl_plugin_registry_get_default ();
-    related_keys = grl_plugin_registry_lookup_metadata_relation (registry,
-                                                                 keys->data);
     while (related_keys) {
       grl_data_set (GRL_DATA (mdata),
                     related_keys->data,
@@ -379,10 +416,10 @@ grl_data_multi_update (GrlDataMulti *mdata,
   } else {
     /* Replace the entire element */
     list_val = g_list_nth (g_hash_table_lookup (mdata->priv->extended_data,
-                                                keys->data),
+                                                related_keys->data),
                            pos - 1);
     if (!list_val) {
-      GRL_WARNING ("Wrong position %u when updating", pos);
+      GRL_WARNING ("%s: index %u out of range", __FUNCTION__, pos);
       g_object_unref (prop);
       return;
     }
