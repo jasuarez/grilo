@@ -30,9 +30,8 @@
 #define _GRL_DATA_MULTI_H_
 
 #include <grl-data.h>
+#include <grl-property.h>
 #include <glib-object.h>
-/* #include <grl-metadata-key.h> */
-/* #include <grl-definitions.h> */
 
 G_BEGIN_DECLS
 
@@ -94,6 +93,15 @@ GType grl_data_multi_get_type (void) G_GNUC_CONST;
 
 GrlDataMulti *grl_data_multi_new (void);
 
+void grl_data_multi_add (GrlDataMulti *mdata, GrlProperty *prop);
+
+guint grl_data_multi_length (GrlDataMulti *mdata, GrlKeyID key);
+
+GrlProperty *grl_data_multi_get (GrlDataMulti *mdata, GrlKeyID key, guint pos);
+
+void grl_data_multi_remove (GrlDataMulti *mdata, GrlKeyID key, guint pos);
+
+void grl_data_multi_update (GrlDataMulti *mdata, GrlProperty *prop, guint pos);
 G_END_DECLS
 
 #endif /* _GRL_DATA_MULTI_H_ */
