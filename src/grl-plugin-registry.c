@@ -850,7 +850,7 @@ grl_plugin_registry_register_metadata_key_relation (GrlPluginRegistry *registry,
     return;
   }
 
-  /* Merge both relations */
+  /* Merge both relations [related(key1), related(key2)] */
   key1_partners = g_list_concat(key1_partners, key2_partners);
 
   for (key1_peer = key1_partners;
