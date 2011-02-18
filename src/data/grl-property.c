@@ -59,3 +59,26 @@ grl_property_new (void)
 
   return grlprop;
 }
+
+/**
+ * grl_property_new_with_keys:
+ * @related_keys: (element-type Grl.KeyID): list of keys.
+ *
+ * Creates a new place to store related keys and values.
+ *
+ * Initially it will contain the specified set of keys with no values.
+ *
+ * Returns: a new #GrlProperty
+ **/
+GrlProperty *
+grl_property_new_with_keys (const GList *keys)
+{
+  GrlProperty *prop = grl_property_new ();
+
+  while (keys) {
+    grl_data_add (GRL_DATA (prop), keys->data);
+    keys = g_list_next (keys);
+  }
+
+  return prop;
+}

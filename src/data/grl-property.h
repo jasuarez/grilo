@@ -94,6 +94,8 @@ GType grl_property_get_type (void) G_GNUC_CONST;
 
 GrlProperty *grl_property_new (void);
 
+GrlProperty *grl_property_new_with_keys (const GList *keys);
+
 G_END_DECLS
 
 #endif /* _GRL_PROPERTY_H_ */
