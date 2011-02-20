@@ -292,6 +292,97 @@ grl_data_multi_get (GrlDataMulti *mdata,
 }
 
 /**
+ * grl_data_multi_get_all_single:
+ * @mdata: a multivalued data
+ * @key: a metadata key
+ *
+ * Returns all non-NULL values for specified key. This ignores completely the
+ * related keys.
+ *
+ * Returns: (element-type GObject.Value) (transfer container): a #GList with
+ * values. Free it with #g_list_free.
+ **/
+GList *
+grl_data_multi_get_all_single (GrlDataMulti *mdata,
+                               GrlKeyID key)
+{
+  GList *list_values;
+  GList *result = NULL;
+  GValue *value;
+  GrlPluginRegistry *registry;
+  const GList *related_keys;
+
+  g_return_val_if_fail (GRL_IS_DATA_MULTI (mdata), NULL);
+
+  /* Get the representative element of key */
+  registry = grl_plugin_registry_get_default ();
+  related_keys = grl_plugin_registry_lookup_metadata_key_relation (registry,
+                                                                   key);
+  if (!related_keys) {
+    GRL_WARNING ("Not found related keys");
+    return result;
+  }
+
+  /* Get the first value */
+  value = (GValue *) grl_data_get (GRL_DATA (mdata), key);
+  if (value) {
+    result = g_list_prepend (result, value);
+  }
+
+  /* Get the remaining list of values */
+  list_values = g_hash_table_lookup (mdata->priv->extended_data,
+                                     related_keys->data);
+  while (list_values) {
+    value = (GValue *) grl_data_get (GRL_DATA (list_values->data), key);
+    if (value) {
+      result = g_list_prepend (result, value);
+    }
+    list_values = g_list_next (list_values);
+  }
+
+  return g_list_reverse (result);
+}
+
+/**
+ * grl_data_multi_get_all_single_string:
+ * @mdata: a multivalued data
+ * @key: a metadata key
+ *
+ * Returns all non-NULL values for specified key of type string. This ignores
+ * completely the related keys.
+ *
+ * Returns: (element-type utf8) (transfer container): a #GList with
+ * values. Free it with #g_list_free.
+ **/
+GList *
+grl_data_multi_get_all_single_string (GrlDataMulti *mdata,
+                                      GrlKeyID key)
+{
+  GList *list_strings = NULL;
+  GList *list_values;
+  GList *value;
+  const gchar *string_value;
+
+  /* Verify key is of type string */
+  if (GRL_METADATA_KEY_GET_TYPE (key) != G_TYPE_STRING) {
+    GRL_WARNING ("Wrong type (not string)");
+    return NULL;
+  }
+
+  list_values = grl_data_multi_get_all_single (mdata, key);
+  for (value = list_values; value; value = g_list_next (value)) {
+    string_value = g_value_get_string (value->data);
+    if (string_value) {
+      list_strings = g_list_prepend (list_strings, (gpointer) string_value);
+    }
+  }
+
+  g_list_free (list_values);
+
+  return g_list_reverse (list_strings);
+}
+
+/**
  * grl_data_multi_remove:
  * @mdata: a multivalued data
  * @key: a metadata key

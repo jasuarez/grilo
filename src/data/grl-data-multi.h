@@ -99,9 +99,14 @@ guint grl_data_multi_length (GrlDataMulti *mdata, GrlKeyID key);
 
 GrlProperty *grl_data_multi_get (GrlDataMulti *mdata, GrlKeyID key, guint pos);
 
+GList *grl_data_multi_get_all_single (GrlDataMulti *mdata, GrlKeyID key);
+
+GList *grl_data_multi_get_all_single_string (GrlDataMulti *mdata, GrlKeyID key);
+
 void grl_data_multi_remove (GrlDataMulti *mdata, GrlKeyID key, guint pos);
 
 void grl_data_multi_update (GrlDataMulti *mdata, GrlProperty *prop, guint pos);
+
 G_END_DECLS
 
 #endif /* _GRL_DATA_MULTI_H_ */
