@@ -29,10 +29,9 @@
 #ifndef _GRL_PROPERTY_H_
 #define _GRL_PROPERTY_H_
 
-#include <grl-data.h>
 #include <glib-object.h>
-/* #include <grl-metadata-key.h> */
-/* #include <grl-definitions.h> */
+#include <grl-metadata-key.h>
+#include <grl-definitions.h>
 
 G_BEGIN_DECLS
 
@@ -74,7 +73,7 @@ typedef struct _GrlPropertyClass   GrlPropertyClass;
  */
 struct _GrlPropertyClass
 {
-  GrlDataClass parent_class;
+  GObjectClass parent_class;
 
   /*< private >*/
   gpointer _grl_reserved[GRL_PADDING];
@@ -82,7 +81,7 @@ struct _GrlPropertyClass
 
 struct _GrlProperty
 {
-  GrlData parent;
+  GObject parent;
 
   /*< private >*/
   GrlPropertyPrivate *priv;
@@ -94,7 +93,61 @@ GType grl_property_get_type (void) G_GNUC_CONST;
 
 GrlProperty *grl_property_new (void);
 
-GrlProperty *grl_property_new_with_keys (const GList *keys);
+GrlProperty *grl_property_new_for_key (GrlKeyID key);
+
+void grl_property_set (GrlProperty *property,
+                       GrlKeyID key,
+                       const GValue *value);
+
+void grl_property_set_string (GrlProperty *property,
+                              GrlKeyID key,
+                              const gchar *strvalue);
+
+void grl_property_set_int (GrlProperty *property,
+                           GrlKeyID key,
+                           gint intvalue);
+
+void grl_property_set_float (GrlProperty *property,
+                             GrlKeyID key,
+                             gfloat floatvalue);
+
+void grl_property_set_binary(GrlProperty *property,
+                             GrlKeyID key,
+                             const guint8 *buf,
+                             gsize size);
+
+const GValue *grl_property_get (GrlProperty *property,
+                                GrlKeyID key);
+
+const gchar *grl_property_get_string (GrlProperty *property,
+                                      GrlKeyID key);
+
+gint grl_property_get_int (GrlProperty *property,
+                           GrlKeyID key);
+
+gfloat grl_property_get_float (GrlProperty *property,
+                               GrlKeyID key);
+
+const guint8 *grl_property_get_binary(GrlProperty *property,
+                                      GrlKeyID key,
+                                      gsize *size);
+
+void grl_property_add (GrlProperty *property,
+                       GrlKeyID key);
+
+void grl_property_remove (GrlProperty *property,
+                          GrlKeyID key);
+
+gboolean grl_property_has_key (GrlProperty *property,
+                               GrlKeyID key);
+
+GList *grl_property_get_keys (GrlProperty *property,
+                              gboolean include_unknown);
+
+gboolean grl_property_key_is_known (GrlProperty *property,
+                                    GrlKeyID key);
+
+GrlProperty *grl_property_dup (GrlProperty *property);
 
 G_END_DECLS
 
