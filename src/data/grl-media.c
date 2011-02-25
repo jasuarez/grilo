@@ -44,7 +44,7 @@ GRL_LOG_DOMAIN(media_log_domain);
 static void grl_media_dispose (GObject *object);
 static void grl_media_finalize (GObject *object);
 
-G_DEFINE_TYPE (GrlMedia, grl_media, GRL_TYPE_DATA_MULTI);
+G_DEFINE_TYPE (GrlMedia, grl_media, GRL_TYPE_DATA);
 
 static void
 grl_media_class_init (GrlMediaClass *klass)

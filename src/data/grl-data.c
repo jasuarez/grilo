@@ -34,6 +34,10 @@
 
 #include "grl-data.h"
 #include "grl-log.h"
+#include <grl-plugin-registry.h>
+
+#define GRL_LOG_DOMAIN_DEFAULT data_log_domain
+GRL_LOG_DOMAIN(data_log_domain);
 
 enum {
   PROP_0,
@@ -45,39 +49,35 @@ struct _GrlDataPrivate {
   gboolean overwrite;
 };
 
-static void grl_data_set_property (GObject *object,
-                                   guint prop_id,
-                                   const GValue *value,
-                                   GParamSpec *pspec);
+static void grl_data_set_gobject_property (GObject *object,
+                                           guint prop_id,
+                                           const GValue *value,
+                                           GParamSpec *pspec);
 
-static void grl_data_get_property (GObject *object,
-                                   guint prop_id,
-                                   GValue *value,
-                                   GParamSpec *pspec);
+static void grl_data_get_gobject_property (GObject *object,
+                                           guint prop_id,
+                                           GValue *value,
+                                           GParamSpec *pspec);
 
 static void grl_data_finalize (GObject *object);
+static void free_list_values (GrlKeyID key, GList *values, gpointer user_data);
 
 #define GRL_DATA_GET_PRIVATE(o)                                         \
   (G_TYPE_INSTANCE_GET_PRIVATE ((o), GRL_TYPE_DATA, GrlDataPrivate))
 
-G_DEFINE_TYPE (GrlData, grl_data, G_TYPE_OBJECT);
+static void free_list_values (GrlKeyID key, GList *values, gpointer user_data);
 
-static void
-free_val (GValue *val)
-{
-  if (val) {
-    g_value_unset (val);
-    g_free (val);
-  }
-}
+/* ================ GrlData GObject ================ */
+
+G_DEFINE_TYPE (GrlData, grl_data, G_TYPE_OBJECT);
 
 static void
 grl_data_class_init (GrlDataClass *klass)
 {
   GObjectClass *gobject_class = (GObjectClass *)klass;
 
-  gobject_class->set_property = grl_data_set_property;
-  gobject_class->get_property = grl_data_get_property;
+  gobject_class->set_property = grl_data_set_gobject_property;
+  gobject_class->get_property = grl_data_get_gobject_property;
   gobject_class->finalize = grl_data_finalize;
 
   g_type_class_add_private (klass, sizeof (GrlDataPrivate));
@@ -98,21 +98,28 @@ grl_data_init (GrlData *self)
   self->priv->data = g_hash_table_new_full (g_direct_hash,
                                             g_direct_equal,
                                             NULL,
-                                            (GDestroyNotify) free_val);
+                                            NULL);
 }
 
 static void
 grl_data_finalize (GObject *object)
 {
+  GrlData *data = GRL_DATA (object);
+
   g_signal_handlers_destroy (object);
+  g_hash_table_foreach (data->priv->data,
+                        (GHFunc) free_list_values,
+                        NULL);
+  g_hash_table_unref (data->priv->data);
+
   G_OBJECT_CLASS (grl_data_parent_class)->finalize (object);
 }
 
 static void
-grl_data_set_property (GObject *object,
-                       guint prop_id,
-                       const GValue *value,
-                       GParamSpec *pspec)
+grl_data_set_gobject_property (GObject *object,
+                               guint prop_id,
+                               const GValue *value,
+                               GParamSpec *pspec)
 {
   GrlData *self = GRL_DATA (object);
 
@@ -128,10 +135,10 @@ grl_data_set_property (GObject *object,
 }
 
 static void
-grl_data_get_property (GObject *object,
-                       guint prop_id,
-                       GValue *value,
-                       GParamSpec *pspec)
+grl_data_get_gobject_property (GObject *object,
+                               guint prop_id,
+                               GValue *value,
+                               GParamSpec *pspec)
 {
   GrlData *self = GRL_DATA (object);
 
@@ -145,6 +152,66 @@ grl_data_get_property (GObject *object,
     break;
   }
 }
+
+/* ================ Utitilies ================ */
+
+/* Free the list of values, which are of type #GrlProperty */
+static void
+free_list_values (GrlKeyID key, GList *values, gpointer user_data)
+{
+  g_list_foreach (values, (GFunc) g_object_unref, NULL);
+  g_list_free (values);
+}
+
+/* Returns the sample key that represents the set of keys related with @key */
+static GrlKeyID
+get_sample_key (GrlKeyID key)
+{
+  GrlPluginRegistry *registry;
+  const GList *related_keys;
+
+  registry = grl_plugin_registry_get_default ();
+  related_keys =
+    grl_plugin_registry_lookup_metadata_key_relation (registry, key);
+
+  if (!related_keys) {
+    GRL_WARNING ("Related keys not found for key \"%s\"",
+                 grl_metadata_key_get_name (related_keys->data));
+    return NULL;
+  } else {
+    return related_keys->data;
+  }
+}
+
+/* Sets the first value of data. If it already has a value and overwrite is
+   %TRUE it is replaced */
+static void
+data_set (GrlData *data, GrlKeyID key, const GValue *value, gboolean overwrite)
+{
+  GrlProperty *prop = NULL;
+
+  /* Get the right property */
+  if (grl_data_length (data, key) > 0) {
+    prop = grl_data_get_property (data, key, 0);
+  }
+
+  if (!prop) {
+    /* No property; add it */
+    prop = grl_property_new_for_key (key);
+    grl_property_set (prop, key, value);
+    grl_data_add_property (data, prop);
+  } else {
+    if (grl_property_key_is_known (prop, key) && !overwrite) {
+      /* Property already has a value, and we can not overwrite it */
+      return;
+    } else {
+      /* Set the new value */
+      grl_property_set (prop, key, value);
+    }
+  }
+}
+
+/* ================ API ================ */
 
 /**
  * grl_data_new:
@@ -165,10 +232,9 @@ grl_data_new (void)
 /**
  * grl_data_get:
  * @data: data to retrieve value
- * @key: (type GObject.ParamSpec): key to look up.
+ * @key: (type Grl.KeyID): key to look up.
  *
- * Get the value associated with the key. If it does not contain any value, NULL
- * will be returned.
+ * Get the first value associated with the key.
  *
  * Returns: (transfer none): a #GValue. This value should not be modified nor freed by user.
  *
@@ -177,20 +243,31 @@ grl_data_new (void)
 const GValue *
 grl_data_get (GrlData *data, GrlKeyID key)
 {
+  GrlProperty *prop = NULL;
+
   g_return_val_if_fail (GRL_IS_DATA (data), NULL);
   g_return_val_if_fail (key, NULL);
 
-  return g_hash_table_lookup (data->priv->data, key);
+  if (grl_data_length (data, key) > 0) {
+    prop = grl_data_get_property (data, key, 0);
+  }
+
+  if (!prop) {
+    return NULL;
+  }
+
+  return grl_property_get (prop, key);
 }
 
 /**
  * grl_data_set:
  * @data: data to modify
- * @key: (type GObject.ParamSpec): key to change or add
+ * @key: (type Grl.KeyID): key to change or add
  * @value: the new value
  *
- * Sets the value associated with the key. If key already has a value and
- * #overwrite is TRUE, old value is freed and the new one is set.
+ * Sets the first value associated with the key. If key already has a value and
+ * #overwrite is %TRUE, old value is freed and the new one is set. Else the new
+ * one is assigned.
  *
  * Also, checks that value is compliant with the key specification, modifying it
  * accordingly. For instance, if the key requires a number between 0 and 10, but
@@ -201,42 +278,20 @@ grl_data_get (GrlData *data, GrlKeyID key)
 void
 grl_data_set (GrlData *data, GrlKeyID key, const GValue *value)
 {
-  GValue *copy = NULL;
-
   g_return_if_fail (GRL_IS_DATA (data));
   g_return_if_fail (key);
 
-  if (data->priv->overwrite ||
-      g_hash_table_lookup (data->priv->data, key) == NULL) {
-    /* Dup value */
-    if (value) {
-      if (G_VALUE_TYPE (value) == GRL_METADATA_KEY_GET_TYPE (key)) {
-        copy = g_new0 (GValue, 1);
-        g_value_init (copy, G_VALUE_TYPE (value));
-        g_value_copy (value, copy);
-      } else {
-        GRL_WARNING ("value has type %s, but expected %s",
-                     g_type_name (G_VALUE_TYPE (value)),
-                     g_type_name (GRL_METADATA_KEY_GET_TYPE (key)));
-      }
-    }
-
-    if (copy && g_param_value_validate (key, copy)) {
-      GRL_WARNING ("'%s' value invalid, adjusting",
-                   GRL_METADATA_KEY_GET_NAME (key));
-    }
-    g_hash_table_insert (data->priv->data, key, copy);
-  }
+  data_set (data, key, value, data->priv->overwrite);
 }
 
 /**
  * grl_data_set_string:
  * @data: data to modify
- * @key: (type GObject.ParamSpec): key to change or add
+ * @key: (type Grl.KeyID): key to change or add
  * @strvalue: the new value
  *
- * Sets the value associated with the key. If key already has a value and
- * #overwrite is TRUE, old value is freed and the new one is set.
+ * Sets the first value associated with the key. If key already has a value and
+ * #overwrite is %TRUE, old value is freed and the new one is set.
  *
  * Since: 0.1.4
  **/
@@ -259,12 +314,13 @@ grl_data_set_string (GrlData *data,
 /**
  * grl_data_get_string:
  * @data: data to inspect
- * @key: (type GObject.ParamSpec): key to use
+ * @key: (type Grl.KeyID): key to use
  *
- * Returns the value associated with the key. If key has no value, or value is
- * not string, or key is not in data, then NULL is returned.
+ * Returns the first value associated with the key. If key has no first value,
+ * or value is not string, or key is not in data, then %NULL is returned.
  *
- * Returns: string associated with key, or NULL in other case. Caller should not change nor free the value.
+ * Returns: string associated with key, or %NULL in other case. Caller should
+ * not change nor free the value.
  *
  * Since: 0.1.4
  **/
@@ -273,7 +329,7 @@ grl_data_get_string (GrlData *data, GrlKeyID key)
 {
   const GValue *value = grl_data_get (data, key);
 
-  if (!value || !G_VALUE_HOLDS_STRING(value)) {
+  if (!value || !G_VALUE_HOLDS_STRING (value)) {
     return NULL;
   } else {
     return g_value_get_string (value);
@@ -283,11 +339,11 @@ grl_data_get_string (GrlData *data, GrlKeyID key)
 /**
  * grl_data_set_int:
  * @data: data to change
- * @key: (type GObject.ParamSpec): key to change or add
+ * @key: (type Grl.KeyID): key to change or add
  * @intvalue: the new value
  *
- * Sets the value associated with the key. If key already has a value and
- * #overwrite is TRUE, old value is replaced by the new one.
+ * Sets the first value associated with the key. If key already has a first
+ * value and #overwrite is %TRUE, old value is replaced by the new one.
  *
  * Since: 0.1.4
  **/
@@ -303,10 +359,10 @@ grl_data_set_int (GrlData *data, GrlKeyID key, gint intvalue)
 /**
  * grl_data_get_int:
  * @data: data to inspect
- * @key: (type GObject.ParamSpec): key to use
+ * @key: (type Grl.KeyID): key to use
  *
- * Returns the value associated with the key. If key has no value, or value is
- * not a gint, or key is not in data, then 0 is returned.
+ * Returns the first value associated with the key. If key has no first value,
+ * or value is not a gint, or key is not in data, then 0 is returned.
  *
  * Returns: int value associated with key, or 0 in other case.
  *
@@ -317,7 +373,7 @@ grl_data_get_int (GrlData *data, GrlKeyID key)
 {
   const GValue *value = grl_data_get (data, key);
 
-  if (!value || !G_VALUE_HOLDS_INT(value)) {
+  if (!value || !G_VALUE_HOLDS_INT (value)) {
     return 0;
   } else {
     return g_value_get_int (value);
@@ -327,11 +383,11 @@ grl_data_get_int (GrlData *data, GrlKeyID key)
 /**
  * grl_data_set_float:
  * @data: data to change
- * @key: (type GObject.ParamSpec): key to change or add
+ * @key: (type Grl.KeyID): key to change or add
  * @floatvalue: the new value
  *
- * Sets the value associated with the key. If key already has a value and
- * #overwrite is TRUE, old value is replaced by the new one.
+ * Sets the first value associated with the key. If key already has a first
+ * value and #overwrite is %TRUE, old value is replaced by the new one.
  *
  * Since: 0.1.5
  **/
@@ -343,13 +399,14 @@ grl_data_set_float (GrlData *data, GrlKeyID key, float floatvalue)
   g_value_set_float (&value, floatvalue);
   grl_data_set (data, key, &value);
 }
+
 /**
  * grl_data_get_float:
  * @data: data to inspect
- * @key: (type GObject.ParamSpec): key to use
+ * @key: (type Grl.KeyID): key to use
  *
- * Returns the value associated with the key. If key has no value, or value is
- * not a gfloat, or key is not in data, then 0 is returned.
+ * Returns the first value associated with the key. If key has no first value,
+ * or value is not a gfloat, or key is not in data, then 0 is returned.
  *
  * Returns: float value associated with key, or 0 in other case.
  *
@@ -360,7 +417,7 @@ grl_data_get_float (GrlData *data, GrlKeyID key)
 {
   const GValue *value = grl_data_get (data, key);
 
-  if (!value || !G_VALUE_HOLDS_FLOAT(value)) {
+  if (!value || !G_VALUE_HOLDS_FLOAT (value)) {
     return 0;
   } else {
     return g_value_get_float (value);
@@ -370,12 +427,12 @@ grl_data_get_float (GrlData *data, GrlKeyID key)
 /**
  * grl_data_set_binary:
  * @data: data to change
- * @key: (type GObject.ParamSpec): key to change or add
+ * @key: (type Grl.KeyID): key to change or add
  * @buf: buffer holding the data
  * @size: size of the buffer
  *
- * Sets the value associated with the key. If key already has a value and
- * #overwrite is TRUE, old value is replaced by the new one.
+ * Sets the first value associated with the key. If key already has a first
+ * value and #overwrite is %TRUE, old value is replaced by the new one.
  **/
 void
 grl_data_set_binary (GrlData *data, GrlKeyID key, const guint8 *buf, gsize size)
@@ -396,13 +453,13 @@ grl_data_set_binary (GrlData *data, GrlKeyID key, const guint8 *buf, gsize size)
 /**
  * grl_data_get_binary:
  * @data: data to inspect
- * @key: (type GObject.ParamSpec): key to use
+ * @key: (type Grl.KeyID): key to use
  * @size: location to store the buffer size
  *
- * Returns the value associated with the key. If key has no value, or value is
- * not a gfloat, or key is not in data, then 0 is returned.
+ * Returns the first value associated with the key. If key has no first value,
+ * or value is not a gfloat, or key is not in data, then 0 is returned.
  *
- * Returns: buffer location associated with the key, or NULL in other case. If
+ * Returns: buffer location associated with the key, or %NULL in other case. If
  * successful size will be set the to the buffer size.
  **/
 const guint8 *
@@ -412,7 +469,7 @@ grl_data_get_binary(GrlData *data, GrlKeyID key, gsize *size)
 
   const GValue *value = grl_data_get (data, key);
 
-  if (!value || !G_VALUE_HOLDS_BOXED(value)) {
+  if (!value || !G_VALUE_HOLDS_BOXED (value)) {
     return NULL;
   } else {
     GByteArray * array;
@@ -426,7 +483,7 @@ grl_data_get_binary(GrlData *data, GrlKeyID key, gsize *size)
 /**
  * grl_data_add:
  * @data: data to change
- * @key: (type GObject.ParamSpec): key to add
+ * @key: (type Grl.KeyID): key to add
  *
  * Adds a new key to data, with no value. If key already exists, it does
  * nothing.
@@ -444,10 +501,12 @@ grl_data_add (GrlData *data, GrlKeyID key)
 /**
  * grl_data_remove:
  * @data: data to change
- * @key: (type GObject.ParamSpec): key to remove
+ * @key: (type Grl.KeyID): key to remove
  *
- * Removes key from data, freeing its value. If key is not in data, then
- * it does nothing.
+ * Removes the first value for key from data. If key is not in data, or value is
+ * %NULL, hen it does nothing.
+ *
+ * Notice this function ignores the value of #overwrite property.
  *
  * Since: 0.1.4
  **/
@@ -455,18 +514,19 @@ void
 grl_data_remove (GrlData *data, GrlKeyID key)
 {
   g_return_if_fail (GRL_IS_DATA (data));
+  g_return_if_fail (key);
 
-  g_hash_table_remove (data->priv->data, key);
+  data_set (data, key, NULL, TRUE);
 }
 
 /**
  * grl_data_has_key:
  * @data: data to inspect
- * @key: (type GObject.ParamSpec): key to search
+ * @key: (type Grl.KeyID): key to search
  *
  * Checks if key is in data.
  *
- * Returns: TRUE if key is in data, FALSE in other case.
+ * Returns: %TRUE if key is in data, %FALSE in other case.
  *
  * Since: 0.1.4
  **/
@@ -484,9 +544,9 @@ grl_data_has_key (GrlData *data, GrlKeyID key)
  *
  * Returns a list with keys contained in data.
  *
- * Returns: (transfer container) (element-type GObject.ParamSpec): an array with
- * the keys. The content of the list should not be modified or freed. Use g_list_free()
- * when done using the list.
+ * Returns: (transfer container) (element-type Grl.KeyID): an array with the
+ * keys. The content of the list should not be modified or freed. Use
+ * g_list_free() when done using the list.
  *
  * Since: 0.1.4
  **/
@@ -505,32 +565,423 @@ grl_data_get_keys (GrlData *data)
 /**
  * grl_data_key_is_known:
  * @data: data to inspect
- * @key: (type GObject.ParamSpec): key to search
+ * @key: (type Grl.KeyID): key to search
  *
- * Checks if the key has a value.
+ * Checks if the key has a first value.
  *
- * Returns: TRUE if key has a value.
+ * Returns: %TRUE if key has a value.
  *
  * Since: 0.1.4
  **/
 gboolean
 grl_data_key_is_known (GrlData *data, GrlKeyID key)
 {
-  GValue *v;
+  const GValue *v;
 
   g_return_val_if_fail (GRL_IS_DATA (data), FALSE);
+  g_return_val_if_fail (key, FALSE);
 
-  v = g_hash_table_lookup (data->priv->data, key);
+  v = grl_data_get (data, key);
 
   if (!v) {
     return FALSE;
   }
 
   if (G_VALUE_HOLDS_STRING (v)) {
-    return g_value_get_string(v) != NULL;
+    return g_value_get_string (v) != NULL;
   }
 
   return TRUE;
+}
+
+/**
+ * grl_data_add_property:
+ * @data: data to change
+ * @prop: a set of related properties with their values
+ *
+ * Adds a new set of values.
+ *
+ * All keys in prop must be related among them.
+ *
+ * @data will take the ownership of prop, so do not modify it.
+ **/
+void
+grl_data_add_property (GrlData *data,
+                       GrlProperty *prop)
+{
+  GList *keys;
+  GList *list_prop;
+  GrlKeyID sample_key;
+
+  g_return_if_fail (GRL_IS_DATA (data));
+  g_return_if_fail (GRL_IS_PROPERTY (prop));
+
+  keys = grl_property_get_keys (prop, TRUE);
+  if (!keys) {
+    /* Ignore empty properties */
+    GRL_WARNING ("Empty set of values");
+    g_object_unref (prop);
+    return;
+  }
+
+  sample_key = get_sample_key (keys->data);
+  g_list_free (keys);
+
+  if (!sample_key) {
+    g_object_unref (prop);
+    return;
+  }
+
+  list_prop = g_hash_table_lookup (data->priv->data, sample_key);
+  list_prop = g_list_append (list_prop, prop);
+  g_hash_table_insert (data->priv->data, sample_key, list_prop);
+}
+
+/**
+ * grl_data_add_string:
+ * @data: data to append
+ * @key: (type Grl.KeyID): key to append
+ * @strvalue: the new value
+ *
+ * Appends a new string value for @key in @data. All related keys are set to
+ * %NULL.
+ **/
+void
+grl_data_add_string (GrlData *data,
+                     GrlKeyID key,
+                     const gchar *strvalue)
+{
+  GrlProperty *prop;
+
+  prop = grl_property_new_for_key (key);
+  grl_property_set_string (prop, key, strvalue);
+  grl_data_add_property (data, prop);
+}
+
+/**
+ * grl_data_add_int:
+ * @data: data to append
+ * @key: (type Grl.KeyID): key to append
+ * @intvalue: the new value
+ *
+ * Appends a new int value for @key in @data. All related keys are set to
+ * %NULL.
+ **/
+void
+grl_data_add_int (GrlData *data,
+                  GrlKeyID key,
+                  gint intvalue)
+{
+  GrlProperty *prop;
+
+  prop = grl_property_new_for_key (key);
+  grl_property_set_int (prop, key, intvalue);
+  grl_data_add_property (data, prop);
+}
+
+/**
+ * grl_data_add_float:
+ * @data: data to append
+ * @key: (type Grl.KeyID): key to append
+ * @floatvalue: the new value
+ *
+ * Appends a new float value for @key in @data. All related keys are set to
+ * %NULL.
+ **/
+void
+grl_data_add_float (GrlData *data,
+                    GrlKeyID key,
+                    gfloat floatvalue)
+{
+  GrlProperty *prop;
+
+  prop = grl_property_new_for_key (key);
+  grl_property_set_float (prop, key, floatvalue);
+  grl_data_add_property (data, prop);
+}
+
+/**
+ * grl_data_add_binary:
+ * @data: data to append
+ * @key: (type Grl.KeyID): key to append
+ * @buf: the buffer containing the new value
+ * @size: size of buffer
+ *
+ * Appends a new binary value for @key in @data. All related keys are set to
+ * %NULL.
+ **/
+void
+grl_data_add_binary (GrlData *data,
+                     GrlKeyID key,
+                     const guint8 *buf,
+                     gsize size)
+{
+  GrlProperty *prop;
+
+  prop = grl_property_new_for_key (key);
+  grl_property_set_binary (prop, key, buf, size);
+  grl_data_add_property (data, prop);
+}
+
+/**
+ * grl_data_length:
+ * @data: a data
+ * @key: a metadata key
+ *
+ * Returns how many values key has in mdata.
+ *
+ * Returns: number of values
+ **/
+guint
+grl_data_length (GrlData *data,
+                 GrlKeyID key)
+{
+  GrlKeyID sample_key;
+
+  g_return_val_if_fail (GRL_IS_DATA (data), 0);
+  g_return_val_if_fail (key, 0);
+
+  sample_key = get_sample_key (key);
+  if (!sample_key) {
+    return 0;
+  }
+
+  return g_list_length (g_hash_table_lookup (data->priv->data, sample_key));
+}
+
+/**
+ * grl_data_get_property:
+ * @mdata: a data
+ * @key: a metadata key
+ * @index: element to retrieve, starting at 0
+ *
+ * Returns a set containing the values for key and related keys at position specified.
+ *
+ * If user changes any of the values in the property, the changes will become permanent.
+ *
+ * Returns: a #GrlProperty. Do not free it.
+ **/
+GrlProperty *
+grl_data_get_property (GrlData *data,
+                       GrlKeyID key,
+                       guint index)
+{
+  GList *prop_list;
+  GrlKeyID sample_key;
+  GrlProperty *prop;
+
+  g_return_val_if_fail (GRL_IS_DATA (data), NULL);
+  g_return_val_if_fail (key, NULL);
+
+  sample_key = get_sample_key (key);
+  if (!sample_key) {
+    return NULL;
+  }
+
+  prop_list = g_hash_table_lookup (data->priv->data, sample_key);
+  prop = g_list_nth_data (prop_list, index);
+
+  if (!prop) {
+      /* GRL_WARNING ("%s: index %u out of range", __FUNCTION__, index); */
+    GRL_WARNING("oUT OF RANGE");
+      return NULL;
+  }
+
+  return prop;
+}
+
+/**
+ * grl_data_get_all_single_property:
+ * @mdata: a data
+ * @key: a metadata key
+ *
+ * Returns all non-%NULL values for specified key. This ignores completely the
+ * related keys.
+ *
+ * Returns: (element-type GObject.Value) (transfer container): a #GList with
+ * values. Do not change or free the values. Free the list with #g_list_free.
+ **/
+GList *
+grl_data_get_all_single_property (GrlData *data,
+                                  GrlKeyID key)
+{
+  GrlKeyID sample_key;
+
+  g_return_val_if_fail (GRL_IS_DATA (data), NULL);
+  g_return_val_if_fail (key, NULL);
+
+  sample_key = get_sample_key (key);
+  if (!sample_key) {
+    return NULL;
+  }
+
+  return g_list_copy (g_hash_table_lookup (data->priv->data, sample_key));
+}
+
+/**
+ * grl_data_get_all_single_property_string:
+ * @mdata: a data
+ * @key: a metadata key
+ *
+ * Returns all non-%NULL values for specified key of type string. This ignores
+ * completely the related keys.
+ *
+ * Returns: (element-type utf8) (transfer container): a #GList with values. Do
+ * not change or free the strings. Free the list with #g_list_free.
+ **/
+GList *
+grl_data_get_all_single_property_string (GrlData *data,
+                                         GrlKeyID key)
+{
+  GList *list_strings = NULL;
+  GList *list_values;
+  GList *value;
+  const gchar *string_value;
+
+  g_return_val_if_fail (GRL_IS_DATA (data), NULL);
+  g_return_val_if_fail (key, NULL);
+
+  /* Verify key is of type string */
+  if (GRL_METADATA_KEY_GET_TYPE (key) != G_TYPE_STRING) {
+    GRL_WARNING ("Wrong type (not string)");
+    return NULL;
+  }
+
+  list_values = grl_data_get_all_single_property (data, key);
+  for (value = list_values; value; value = g_list_next (value)) {
+    string_value = g_value_get_string (value->data);
+    if (string_value) {
+      list_strings = g_list_prepend (list_strings, (gpointer) string_value);
+    }
+  }
+
+  g_list_free (list_values);
+
+  return g_list_reverse (list_strings);
+}
+
+/**
+ * grl_data_remove_property:
+ * @data: a data
+ * @key: a metadata key
+ * @index: index of key to be removed, starting at 0
+ *
+ * Removes key and related keys from position in mdata.
+ **/
+void
+grl_data_remove_property (GrlData *data,
+                          GrlKeyID key,
+                          guint index)
+{
+  GList *prop_element;
+  GList *prop_list;
+  GrlKeyID sample_key;
+
+  g_return_if_fail (GRL_IS_DATA (data));
+  g_return_if_fail (key);
+
+  sample_key = get_sample_key (key);
+  if (!sample_key) {
+    return;
+  }
+
+  prop_list = g_hash_table_lookup (data->priv->data, sample_key);
+  prop_element = g_list_nth (prop_list, index);
+  if (!prop_element) {
+    GRL_WARNING ("%s: index %u out of range", __FUNCTION__, index);
+    return;
+  }
+
+  g_object_unref (prop_element->data);
+  prop_list = g_list_delete_link (prop_list, prop_element);
+  g_hash_table_insert (data->priv->data, sample_key, prop_list);
+}
+
+/**
+ * grl_data_set_property:
+ * @data: a data
+ * @prop: a set of related keys
+ * @index: position to be updated, starting at 0
+ *
+ * Updates the values at position in @data with values in @prop.
+ *
+ * @data will take ownership of @prop, so do not free it after invoking this
+ * function.
+ **/
+void
+grl_data_set_property (GrlData *data,
+                       GrlProperty *prop,
+                       guint index)
+{
+  GList *keys;
+  GList *prop_element;
+  GList *prop_list;
+  GrlKeyID sample_key;
+
+  g_return_if_fail (GRL_IS_DATA (data));
+  g_return_if_fail (GRL_IS_PROPERTY (prop));
+
+  keys = grl_property_get_keys (prop, TRUE);
+  if (!keys) {
+    GRL_WARNING ("Empty properties");
+    g_object_unref (prop);
+    return;
+  }
+
+  sample_key = get_sample_key (keys->data);
+  g_list_free (keys);
+  if (!sample_key) {
+    return;
+  }
+
+  prop_list = g_hash_table_lookup (data->priv->data, sample_key);
+  prop_element = g_list_nth (prop_list, index);
+  if (!prop_element) {
+    GRL_WARNING ("%s: index %u out of range", __FUNCTION__, index);
+    return;
+  }
+
+  g_object_unref (prop_element->data);
+  prop_element->data = prop;
+}
+
+/**
+ * grl_data_dup:
+ * @data: data to duplicate
+ *
+ * Makes a deep copy of @data and all its contents.
+ *
+ * Returns: a new #GrlData. Free it with #g_object_unref.
+ **/
+GrlData *
+grl_data_dup (GrlData *data)
+{
+  GList *dup_prop_list;
+  GList *key;
+  GList *keys;
+  GList *prop_list;
+  GrlData *dup_data;
+
+  g_return_val_if_fail (GRL_IS_DATA (data), NULL);
+
+  dup_data = grl_data_new ();
+  keys = g_hash_table_get_keys (data->priv->data);
+  for (key = keys; key; key = g_list_next (key)) {
+    dup_prop_list = NULL;
+    prop_list = g_hash_table_lookup (data->priv->data, key->data);
+    while (prop_list) {
+      dup_prop_list = g_list_prepend (dup_prop_list,
+                                      grl_property_dup (prop_list->data));
+      prop_list = g_list_next (prop_list);
+    }
+    g_hash_table_insert (dup_data->priv->data,
+                         key->data,
+                         g_list_reverse (prop_list));
+  }
+
+  g_list_free (keys);
+
+  return dup_data;
 }
 
 /**
@@ -541,8 +992,8 @@ grl_data_key_is_known (GrlData *data, GrlKeyID key)
  * This controls if #grl_data_set will overwrite current value of a property
  * with the new one.
  *
- * Set it to TRUE so old values are overwritten, or FALSE in other case (default
- * is FALSE).
+ * Set it to %TRUE so old values are overwritten, or %FALSE in other case (default
+ * is %FALSE).
  *
  * Since: 0.1.4
  **/
@@ -563,7 +1014,7 @@ grl_data_set_overwrite (GrlData *data, gboolean overwrite)
  *
  * Checks if old values are replaced when calling #grl_data_set.
  *
- * Returns: TRUE if values will be overwritten.
+ * Returns: %TRUE if values will be overwritten.
  *
  * Since: 0.1.4
  **/
