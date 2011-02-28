@@ -193,3 +193,137 @@ grl_media_video_get_framerate (GrlMediaVideo *data)
 {
   return grl_data_get_float (GRL_DATA (data), GRL_METADATA_KEY_FRAMERATE);
 }
+
+/**
+ * grl_media_video_set_url_data:
+ * @video: the media instance
+ * @url: the video's url
+ * @mime: video mime-type
+ * @framerate: video framerate, or -1 to ignore
+ * @width: video width, or -1 to ignore
+ * @height: video height, or -1 to ignore
+ *
+ * Sets the video url, as well as its mime type, framerate, width and height.
+ **/
+void
+grl_media_video_set_url_data (GrlMediaVideo *video,
+                              const gchar *url,
+                              const gchar *mime,
+                              gfloat framerate,
+                              gint width,
+                              gint height)
+{
+  GrlProperty *prop = grl_property_new_for_key (GRL_METADATA_KEY_URL);
+  grl_property_set_string (prop, GRL_METADATA_KEY_URL, url);
+  grl_property_set_string (prop, GRL_METADATA_KEY_MIME, mime);
+  if (framerate >= 0) {
+    grl_property_set_float (prop, GRL_METADATA_KEY_FRAMERATE, framerate);
+  }
+  if (width >= 0) {
+    grl_property_set_int (prop, GRL_METADATA_KEY_WIDTH, width);
+  }
+  if (height >= 0) {
+    grl_property_set_int (prop, GRL_METADATA_KEY_HEIGHT, height);
+  }
+  grl_data_set_property (GRL_DATA (video), prop, 0);
+}
+
+/**
+ * grl_media_video_add_url_data:
+ * @video: the media instance
+ * @url: a video's url
+ * @mime: video mime-type
+ * @framerate: video framerate, or -1 to ignore
+ * @width: video width, or -1 to ignore
+ * @height: video height, or -1 to ignore
+ *
+ * Sets a new video url, as well as its mime type, framerate, width and height.
+ **/
+void
+grl_media_video_add_url_data (GrlMediaVideo *video,
+                              const gchar *url,
+                              const gchar *mime,
+                              gfloat framerate,
+                              gint width,
+                              gint height)
+{
+  GrlProperty *prop = grl_property_new_for_key (GRL_METADATA_KEY_URL);
+  grl_property_set_string (prop, GRL_METADATA_KEY_URL, url);
+  grl_property_set_string (prop, GRL_METADATA_KEY_MIME, mime);
+  if (framerate >= 0) {
+    grl_property_set_float (prop, GRL_METADATA_KEY_FRAMERATE, framerate);
+  }
+  if (width >= 0) {
+    grl_property_set_int (prop, GRL_METADATA_KEY_WIDTH, width);
+  }
+  if (height >= 0) {
+    grl_property_set_int (prop, GRL_METADATA_KEY_HEIGHT, height);
+  }
+  grl_data_add_property (GRL_DATA (video), prop);
+}
+
+/**
+ * grl_media_video_get_url_data:
+ * @video: the media instance
+ * @mime: (out) (transfer none): the url mime-type, or %NULL to ignore
+ * @framerate: the url framerate, or %NULL to ignore
+ * @width: the url width, or %NULL to ignore
+ * @height: the url height, or %NULL to ignore
+ *
+ * Returns: the video's url, as well as its mime-type, framerate, width and height.
+ **/
+const gchar *
+grl_media_video_get_url_data (GrlMediaVideo *video,
+                              gchar **mime,
+                              gfloat *framerate,
+                              gint *width,
+                              gint *height)
+{
+  return grl_media_video_get_url_data_nth (video, 0, mime, framerate, width, height);
+}
+
+/**
+ * grl_media_video_get_url_data_nth:
+ * @video: the media instance
+ * @index: element to retrieve
+ * @mime: (out) (transfer none): the url mime-type, or %NULL to ignore
+ * @framerate: the url framerate, or %NULL to ignore
+ * @width: the url width, or %NULL to ignore
+ * @height: the url height, or %NULL to ignore
+ *
+ * Returns: the n-th video's url, as well as its mime-type, framerate, width and
+ * height.
+ **/
+const gchar *
+grl_media_video_get_url_data_nth (GrlMediaVideo *video,
+                                  guint index,
+                                  gchar **mime,
+                                  gfloat *framerate,
+                                  gint *width,
+                                  gint *height)
+{
+  GrlProperty *prop =
+    grl_data_get_property (GRL_DATA (video), GRL_METADATA_KEY_URL, index);
+
+  if (!prop) {
+    return NULL;
+  }
+
+  if (mime) {
+    *mime = (gchar *) grl_property_get_string (prop, GRL_METADATA_KEY_MIME);
+  }
+
+  if (framerate) {
+    *framerate = grl_property_get_float (prop, GRL_METADATA_KEY_FRAMERATE);
+  }
+
+  if (width) {
+    *width = grl_property_get_int (prop, GRL_METADATA_KEY_WIDTH);
+  }
+
+  if (height) {
+    *height = grl_property_get_int (prop, GRL_METADATA_KEY_HEIGHT);
+  }
+
+  return grl_property_get_string (prop, GRL_METADATA_KEY_URL);
+}

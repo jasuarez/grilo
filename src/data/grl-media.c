@@ -112,6 +112,115 @@ grl_media_set_rating (GrlMedia *media, gfloat rating, gfloat max)
 }
 
 /**
+ * grl_media_set_url_data:
+ * @media: a #GrlMedia
+ * @url: the media's URL
+ * @mime: the @url mime type
+ *
+ * Set the media's URL and its mime-type.
+ **/
+void
+grl_media_set_url_data (GrlMedia *media, const gchar *url, const gchar *mime)
+{
+  GrlProperty *prop = grl_property_new_for_key (GRL_METADATA_KEY_URL);
+  grl_property_set_string (prop, GRL_METADATA_KEY_URL, url);
+  grl_property_set_string (prop, GRL_METADATA_KEY_MIME, mime);
+  grl_data_set_property (GRL_DATA (media), prop, 0);
+}
+
+/**
+ * grl_media_add_url_data:
+ * @media: a #GrlMedia
+ * @url: a media's URL
+ * @mime: th @url mime type
+ *
+ * Adds a new media's URL with its mime-type.
+ **/
+void
+grl_media_add_url_data (GrlMedia *media, const gchar *url, const gchar *mime)
+{
+  GrlProperty *prop = grl_property_new_for_key (GRL_METADATA_KEY_URL);
+  grl_property_set_string (prop, GRL_METADATA_KEY_URL, url);
+  grl_property_set_string (prop, GRL_METADATA_KEY_MIME, mime);
+  grl_data_add_property (GRL_DATA (media), prop);
+}
+
+/**
+ * grl_media_add_author:
+ * @media: a #GrlMedia
+ * @author: an author for @media
+ *
+ * Adds a new author to @media.
+ **/
+void
+grl_media_add_author (GrlMedia *media, const gchar *author)
+{
+  grl_data_add_string (GRL_DATA (media), GRL_METADATA_KEY_AUTHOR, author);
+}
+
+/**
+ * grl_media_add_thumbnail:
+ * @media: a #GrlMedia
+ * @thumbnail: a thumbnail for @media
+ *
+ * Adds a new thumbnail to @media.
+ **/
+void
+grl_media_add_thumbnail (GrlMedia *media, const gchar *thumbnail)
+{
+  grl_data_add_string (GRL_DATA (media), GRL_METADATA_KEY_THUMBNAIL, thumbnail);
+}
+
+/**
+ * grl_media_add_thumbnail_binary:
+ * @media: a #GrlMedia
+ * @thumbnail: a buffer containing the thumbnail for @media
+ * @size: size of buffer
+ *
+ * Adds a new thumbnail to @media.
+ **/
+void
+grl_media_add_thumbnail_binary (GrlMedia *media,
+                                const guint8 *thumbnail,
+                                gsize size)
+{
+  grl_data_add_binary (GRL_DATA (media),
+                       GRL_METADATA_KEY_THUMBNAIL_BINARY,
+                       thumbnail,
+                       size);
+}
+
+/**
+ * grl_media_add_external_player:
+ * @media: a #GrlMedia
+ * @player: an external player for @media
+ *
+ * Adds a new external player to @media.
+ **/
+void
+grl_media_add_external_player (GrlMedia *media, const gchar *player)
+{
+  grl_data_add_string (GRL_DATA (media),
+                       GRL_METADATA_KEY_EXTERNAL_PLAYER,
+                       player);
+}
+
+/**
+ * grl_media_add_external_url:
+ * @media: a #GrlMedia
+ * @url: an external url for @media
+ *
+ * Adds a new external url to @media.
+ **/
+void
+grl_media_add_external_url (GrlMedia *media, const gchar *url)
+{
+  grl_data_add_string (GRL_DATA (media),
+                       GRL_METADATA_KEY_EXTERNAL_URL,
+                       url);
+}
+
+/**
  * grl_media_serialize:
  * @media: a #GrlMedia
  *
@@ -742,6 +851,44 @@ grl_media_get_url (GrlMedia *data)
 }
 
 /**
+ * grl_media_get_url_data:
+ * @media: the media object
+ * @mime: (out) (transfer none): the mime-type, or %NULL to ignore.
+ *
+ * Returns: the media's URL and its mime-type.
+ */
+const gchar *
+grl_media_get_url_data (GrlMedia *media, gchar **mime)
+{
+  return grl_media_get_url_data_nth (media, 0, mime);
+}
+
+/**
+ * grl_media_get_url_data_nth:
+ * @data: the media object
+ * @index: element to retrieve
+ * @mime: (out) (transfer none): the mime-type, or %NULL to ignore.
+ *
+ * Returns: the n-th media's URL and its mime-type.
+ */
+const gchar *
+grl_media_get_url_data_nth (GrlMedia *data, guint index, gchar **mime)
+{
+  GrlProperty *prop =
+    grl_data_get_property (GRL_DATA (data), GRL_METADATA_KEY_URL, index);
+
+  if (!prop) {
+    return NULL;
+  }
+
+  if (mime) {
+    *mime = (gchar *) grl_property_get_string (prop, GRL_METADATA_KEY_MIME);
+  }
+
+  return grl_property_get_string (prop, GRL_METADATA_KEY_URL);
+}
+
+/**
  * grl_media_get_author:
  * @data: the media object
  *
@@ -753,6 +900,26 @@ const gchar *
 grl_media_get_author (GrlMedia *data)
 {
   return grl_data_get_string (GRL_DATA (data), GRL_METADATA_KEY_AUTHOR);
+}
+
+/**
+ * grl_media_get_author_nth:
+ * @data: the media object
+ * @index: element to retrieve
+ *
+ * Returns: the n-th media's author.
+ */
+const gchar *
+grl_media_get_author_nth (GrlMedia *data, guint index)
+{
+  GrlProperty *prop =
+    grl_data_get_property (GRL_DATA (data), GRL_METADATA_KEY_AUTHOR, index);
+
+  if (!prop) {
+    return NULL;
+  } else {
+    return grl_property_get_string (prop, GRL_METADATA_KEY_AUTHOR);
+  }
 }
 
 /**
@@ -812,6 +979,26 @@ grl_media_get_thumbnail (GrlMedia *data)
 }
 
 /**
+ * grl_media_get_thumbnail_nth:
+ * @data: the media object
+ * @index: element to retrieve
+ *
+ * Returns: the n-th media's thumbnail.
+ */
+const gchar *
+grl_media_get_thumbnail_nth (GrlMedia *data, guint index)
+{
+  GrlProperty *prop =
+    grl_data_get_property (GRL_DATA (data), GRL_METADATA_KEY_THUMBNAIL, index);
+
+  if (!prop) {
+    return NULL;
+  } else {
+    return grl_property_get_string (prop, GRL_METADATA_KEY_THUMBNAIL);
+  }
+}
+
+/**
  * grl_media_get_thumbnail_binary:
  * @data: the media object
  * @size: pointer to storing the thumbnail buffer size
@@ -826,6 +1013,28 @@ grl_media_get_thumbnail_binary (GrlMedia *data, gsize *size)
   return grl_data_get_binary (GRL_DATA (data),
                               GRL_METADATA_KEY_THUMBNAIL_BINARY,
                               size);
+}
+
+/**
+ * grl_media_get_thumbnail_binary_nth:
+ * @data: the media object
+ * @size: pointer to store the thumbnail buffer size
+ * @index: element to retrieve
+ *
+ * Returns: the n-th media's thumbnail binary and sets size to the thumbnail
+ * buffer size.
+ */
+const guint8 *
+grl_media_get_thumbnail_binary_nth (GrlMedia *data, gsize *size, guint index)
+{
+  GrlProperty *prop =
+    grl_data_get_property (GRL_DATA (data), GRL_METADATA_KEY_THUMBNAIL, index);
+
+  if (!prop) {
+    return NULL;
+  } else {
+    return grl_property_get_binary (prop, GRL_METADATA_KEY_THUMBNAIL, size);
+  }
 }
 
 /**

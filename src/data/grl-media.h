@@ -141,11 +141,31 @@ void grl_media_set_license (GrlMedia *data, const gchar *license);
 
 void grl_media_set_rating (GrlMedia *media, gfloat rating, gfloat max);
 
+void grl_media_set_url_data (GrlMedia *media, const gchar *url, const gchar *mime);
+
+void grl_media_add_url_data (GrlMedia *media, const gchar *url, const gchar *mime);
+
+void grl_media_add_author (GrlMedia *media, const gchar *author);
+
+void grl_media_add_thumbnail (GrlMedia *media, const gchar *thumbnail);
+
+void grl_media_add_thumbnail_binary (GrlMedia *media, const guint8 *thumbnail, gsize size);
+
+void grl_media_add_external_player (GrlMedia *media, const gchar *player);
+
+void grl_media_add_external_url (GrlMedia *media, const gchar *url);
+
 const gchar *grl_media_get_id (GrlMedia *data);
 
 const gchar *grl_media_get_url (GrlMedia *data);
 
+const gchar *grl_media_get_url_data (GrlMedia *media, gchar **mime);
+
+const gchar *grl_media_get_url_data_nth (GrlMedia *media, guint index, gchar **mime);
+
 const gchar *grl_media_get_author (GrlMedia *data);
+
+const gchar *grl_media_get_author_nth (GrlMedia *data, guint index);
 
 const gchar *grl_media_get_title (GrlMedia *data);
 
@@ -155,7 +175,11 @@ const gchar *grl_media_get_source (GrlMedia *data);
 
 const gchar *grl_media_get_thumbnail (GrlMedia *data);
 
+const gchar *grl_media_get_thumbnail_nth (GrlMedia *media, guint index);
+
 const guint8 *grl_media_get_thumbnail_binary (GrlMedia *data, gsize *size);
+
+const guint8 *grl_media_get_thumbnail_binary_nth (GrlMedia *media, gsize *size, guint index);
 
 const gchar *grl_media_get_site (GrlMedia *data);
 
@@ -175,7 +199,11 @@ const gchar *grl_media_get_last_played (GrlMedia *data);
 
 const gchar *grl_media_get_player (GrlMedia *data);
 
+const gchar *grl_media_get_player_nth (GrlMedia *data, guint index);
+
 const gchar *grl_media_get_external_url (GrlMedia *data);
+
+const gchar *grl_media_get_external_url_nth (GrlMedia *media, guint index);
 
 const gchar *grl_media_get_studio (GrlMedia *data);
 

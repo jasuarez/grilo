@@ -105,6 +105,33 @@ void grl_media_video_set_size (GrlMediaVideo *video,
                                gint width,
                                gint height);
 
+void grl_media_video_set_url_data (GrlMediaVideo *video,
+                                   const gchar *url,
+                                   const gchar *mime,
+                                   gfloat framerate,
+                                   gint width,
+                                   gint height);
+
+void grl_media_video_add_url_data (GrlMediaVideo *video,
+                                   const gchar *url,
+                                   const gchar *mime,
+                                   gfloat framerate,
+                                   gint width,
+                                   gint height);
+
+const gchar *grl_media_video_get_url_data (GrlMediaVideo *video,
+                                           gchar **mime,
+                                           gfloat *framerate,
+                                           gint *width,
+                                           gint *height);
+
+const gchar *grl_media_video_get_url_data_nth (GrlMediaVideo *video,
+                                               guint index,
+                                               gchar **mime,
+                                               gfloat *framerate,
+                                               gint *width,
+                                               gint *height);
+
 G_END_DECLS
 
 #endif /* _GRL_MEDIA_VIDEO_H_ */

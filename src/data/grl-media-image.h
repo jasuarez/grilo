@@ -99,6 +99,29 @@ void grl_media_image_set_size (GrlMediaImage *image,
                                gint width,
                                gint height);
 
+const gchar *grl_media_image_get_url_data (GrlMediaImage *image,
+                                           gchar **mime,
+                                           gint *width,
+                                           gint *height);
+
+const gchar *grl_media_image_get_url_data_nth (GrlMediaImage *image,
+                                               guint index,
+                                               gchar **mime,
+                                               gint *width,
+                                               gint *height);
+
+void grl_media_image_set_url_data (GrlMediaImage *image,
+                                   const gchar *url,
+                                   const gchar *mime,
+                                   gint width,
+                                   gint height);
+
+void grl_media_image_add_url_data (GrlMediaImage *image,
+                                   const gchar *url,
+                                   const gchar *mime,
+                                   gint width,
+                                   gint height);
+
 G_END_DECLS
 
 #endif /* _GRL_MEDIA_IMAGE_H_ */
