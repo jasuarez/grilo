@@ -234,9 +234,10 @@ grl_data_new (void)
  * @data: data to retrieve value
  * @key: (type Grl.KeyID): key to look up.
  *
- * Get the first value associated with the key.
+ * Get the first value from @data associated with @key.
  *
- * Returns: (transfer none): a #GValue. This value should not be modified nor freed by user.
+ * Returns: (transfer none): a #GValue. This value should not be modified nor
+ * freed by user.
  *
  * Since: 0.1.4
  **/
@@ -265,13 +266,13 @@ grl_data_get (GrlData *data, GrlKeyID key)
  * @key: (type Grl.KeyID): key to change or add
  * @value: the new value
  *
- * Sets the first value associated with the key. If key already has a value and
- * #overwrite is %TRUE, old value is freed and the new one is set. Else the new
- * one is assigned.
+ * Sets the first value associated with @key in @data. If key already has a
+ * value and #overwrite is %TRUE, old value is freed and the new one is
+ * set. Else the new one is assigned.
  *
- * Also, checks that value is compliant with the key specification, modifying it
- * accordingly. For instance, if the key requires a number between 0 and 10, but
- * value is outside this range, it will be adapted accordingly.
+ * Also, checks that @value is compliant with @key specification, modifying it
+ * accordingly. For instance, if @key requires a number between 0 and 10, but
+ * @value is outside this range, it will be adapted accordingly.
  *
  * Since: 0.1.4
  **/
@@ -290,8 +291,9 @@ grl_data_set (GrlData *data, GrlKeyID key, const GValue *value)
  * @key: (type Grl.KeyID): key to change or add
  * @strvalue: the new value
  *
- * Sets the first value associated with the key. If key already has a value and
- * #overwrite is %TRUE, old value is freed and the new one is set.
+ * Sets the first string value associated with @key in @data. If @key already
+ * has a value and #overwrite is %TRUE, old value is freed and the new one is
+ * set.
  *
  * Since: 0.1.4
  **/
@@ -316,10 +318,11 @@ grl_data_set_string (GrlData *data,
  * @data: data to inspect
  * @key: (type Grl.KeyID): key to use
  *
- * Returns the first value associated with the key. If key has no first value,
- * or value is not string, or key is not in data, then %NULL is returned.
+ * Returns the first string value associated with @key from @data. If @key has
+ * no first value, or value is not string, or @key is not in @data, then %NULL
+ * is returned.
  *
- * Returns: string associated with key, or %NULL in other case. Caller should
+ * Returns: string associated with @key, or %NULL in other case. Caller should
  * not change nor free the value.
  *
  * Since: 0.1.4
@@ -342,8 +345,8 @@ grl_data_get_string (GrlData *data, GrlKeyID key)
  * @key: (type Grl.KeyID): key to change or add
  * @intvalue: the new value
  *
- * Sets the first value associated with the key. If key already has a first
- * value and #overwrite is %TRUE, old value is replaced by the new one.
+ * Sets the first int value associated with @key in @data. If @key already has a
+ * first value and #overwrite is %TRUE, old value is replaced by the new one.
  *
  * Since: 0.1.4
  **/
@@ -361,10 +364,11 @@ grl_data_set_int (GrlData *data, GrlKeyID key, gint intvalue)
  * @data: data to inspect
  * @key: (type Grl.KeyID): key to use
  *
- * Returns the first value associated with the key. If key has no first value,
- * or value is not a gint, or key is not in data, then 0 is returned.
+ * Returns the first int value associated with @key from @data. If @key has no
+ * first value, or value is not a gint, or @key is not in data, then 0 is
+ * returned.
  *
- * Returns: int value associated with key, or 0 in other case.
+ * Returns: int value associated with @key, or 0 in other case.
  *
  * Since: 0.1.4
  **/
@@ -386,8 +390,8 @@ grl_data_get_int (GrlData *data, GrlKeyID key)
  * @key: (type Grl.KeyID): key to change or add
  * @floatvalue: the new value
  *
- * Sets the first value associated with the key. If key already has a first
- * value and #overwrite is %TRUE, old value is replaced by the new one.
+ * Sets the first float value associated with @key in @data. If @key already has
+ * a first value and #overwrite is %TRUE, old value is replaced by the new one.
  *
  * Since: 0.1.5
  **/
@@ -405,10 +409,11 @@ grl_data_set_float (GrlData *data, GrlKeyID key, float floatvalue)
  * @data: data to inspect
  * @key: (type Grl.KeyID): key to use
  *
- * Returns the first value associated with the key. If key has no first value,
- * or value is not a gfloat, or key is not in data, then 0 is returned.
+ * Returns the first float value associated with @key from @data. If @key has no
+ * first value, or value is not a gfloat, or @key is not in data, then 0 is
+ * returned.
  *
- * Returns: float value associated with key, or 0 in other case.
+ * Returns: float value associated with @key, or 0 in other case.
  *
  * Since: 0.1.5
  **/
@@ -431,8 +436,9 @@ grl_data_get_float (GrlData *data, GrlKeyID key)
  * @buf: buffer holding the data
  * @size: size of the buffer
  *
- * Sets the first value associated with the key. If key already has a first
- * value and #overwrite is %TRUE, old value is replaced by the new one.
+ * Sets the first binary value associated with @key in @data. If @key already
+ * has a first value and #overwrite is %TRUE, old value is replaced by the new
+ * one.
  **/
 void
 grl_data_set_binary (GrlData *data, GrlKeyID key, const guint8 *buf, gsize size)
@@ -454,13 +460,14 @@ grl_data_set_binary (GrlData *data, GrlKeyID key, const guint8 *buf, gsize size)
  * grl_data_get_binary:
  * @data: data to inspect
  * @key: (type Grl.KeyID): key to use
- * @size: location to store the buffer size
+ * @size: (out): location to store the buffer size
  *
- * Returns the first value associated with the key. If key has no first value,
- * or value is not a gfloat, or key is not in data, then 0 is returned.
+ * Returns the first binary value associated with @key from @data. If @key has
+ * no first value, or value is not a gfloat, or @key is not in data, then %NULL
+ * is returned.
  *
- * Returns: buffer location associated with the key, or %NULL in other case. If
- * successful size will be set the to the buffer size.
+ * Returns: buffer location associated with the @key, or %NULL in other case. If
+ * successful @size will be set the to the buffer size.
  **/
 const guint8 *
 grl_data_get_binary(GrlData *data, GrlKeyID key, gsize *size)
@@ -485,7 +492,7 @@ grl_data_get_binary(GrlData *data, GrlKeyID key, gsize *size)
  * @data: data to change
  * @key: (type Grl.KeyID): key to add
  *
- * Adds a new key to data, with no value. If key already exists, it does
+ * Adds a new @key to @data, with no value. If key already exists, it does
  * nothing.
  *
  * Since: 0.1.4
@@ -503,8 +510,8 @@ grl_data_add (GrlData *data, GrlKeyID key)
  * @data: data to change
  * @key: (type Grl.KeyID): key to remove
  *
- * Removes the first value for key from data. If key is not in data, or value is
- * %NULL, hen it does nothing.
+ * Removes the first value for @key from @data. If @key is not in @data, or
+ * value is %NULL, then it does nothing.
  *
  * Notice this function ignores the value of #overwrite property.
  *
@@ -524,9 +531,9 @@ grl_data_remove (GrlData *data, GrlKeyID key)
  * @data: data to inspect
  * @key: (type Grl.KeyID): key to search
  *
- * Checks if key is in data.
+ * Checks if @key is in @data.
  *
- * Returns: %TRUE if key is in data, %FALSE in other case.
+ * Returns: %TRUE if @key is in @data, %FALSE in other case.
  *
  * Since: 0.1.4
  **/
@@ -542,7 +549,7 @@ grl_data_has_key (GrlData *data, GrlKeyID key)
  * grl_data_get_keys:
  * @data: data to inspect
  *
- * Returns a list with keys contained in data.
+ * Returns a list with keys contained in @data.
  *
  * Returns: (transfer container) (element-type Grl.KeyID): an array with the
  * keys. The content of the list should not be modified or freed. Use
@@ -567,7 +574,7 @@ grl_data_get_keys (GrlData *data)
  * @data: data to inspect
  * @key: (type Grl.KeyID): key to search
  *
- * Checks if the key has a first value.
+ * Checks if the @key has a first value in @data.
  *
  * Returns: %TRUE if key has a value.
  *
@@ -599,9 +606,9 @@ grl_data_key_is_known (GrlData *data, GrlKeyID key)
  * @data: data to change
  * @prop: a set of related properties with their values
  *
- * Adds a new set of values.
+ * Adds a new set of values into @data.
  *
- * All keys in prop must be related among them.
+ * All keys in @prop must be related among them.
  *
  * @data will take the ownership of prop, so do not modify it.
  **/
@@ -643,8 +650,10 @@ grl_data_add_property (GrlData *data,
  * @key: (type Grl.KeyID): key to append
  * @strvalue: the new value
  *
- * Appends a new string value for @key in @data. All related keys are set to
- * %NULL.
+ * Appends a new string value for @key in @data.
+ *
+ * If there are other keys that are related to @key, %NULL values will be
+ * appended for each of them too.
  **/
 void
 grl_data_add_string (GrlData *data,
@@ -664,8 +673,10 @@ grl_data_add_string (GrlData *data,
  * @key: (type Grl.KeyID): key to append
  * @intvalue: the new value
  *
- * Appends a new int value for @key in @data. All related keys are set to
- * %NULL.
+ * Appends a new int value for @key in @data.
+ *
+ * If there are other keys that are related to @key, %NULL values will be
+ * appended for each of them too.
  **/
 void
 grl_data_add_int (GrlData *data,
@@ -685,8 +696,10 @@ grl_data_add_int (GrlData *data,
  * @key: (type Grl.KeyID): key to append
  * @floatvalue: the new value
  *
- * Appends a new float value for @key in @data. All related keys are set to
- * %NULL.
+ * Appends a new float value for @key in @data.
+ *
+ * If there are other keys that are related to @key, %NULL values will be
+ * appended for each of them too.
  **/
 void
 grl_data_add_float (GrlData *data,
@@ -707,8 +720,10 @@ grl_data_add_float (GrlData *data,
  * @buf: the buffer containing the new value
  * @size: size of buffer
  *
- * Appends a new binary value for @key in @data. All related keys are set to
- * %NULL.
+ * Appends a new binary value for @key in @data.
+ *
+ * If there are other keys that are related to @key, %NULL values will be
+ * appended for each of them too.
  **/
 void
 grl_data_add_binary (GrlData *data,
@@ -728,7 +743,7 @@ grl_data_add_binary (GrlData *data,
  * @data: a data
  * @key: a metadata key
  *
- * Returns how many values key has in mdata.
+ * Returns how many values @key has in @data.
  *
  * Returns: number of values
  **/
@@ -751,13 +766,15 @@ grl_data_length (GrlData *data,
 
 /**
  * grl_data_get_property:
- * @mdata: a data
+ * @data: a data
  * @key: a metadata key
  * @index: element to retrieve, starting at 0
  *
- * Returns a set containing the values for key and related keys at position specified.
+ * Returns a set containing the values for @key and related keys at position
+ * @index from @data.
  *
- * If user changes any of the values in the property, the changes will become permanent.
+ * If user changes any of the values in the property, the changes will become
+ * permanent.
  *
  * Returns: a #GrlProperty. Do not free it.
  **/
@@ -791,11 +808,10 @@ grl_data_get_property (GrlData *data,
 
 /**
  * grl_data_get_all_single_property:
- * @mdata: a data
+ * @data: a data
  * @key: a metadata key
  *
- * Returns all non-%NULL values for specified key. This ignores completely the
- * related keys.
+ * Returns all non-%NULL values for @key from @data. This ignores related keys.
  *
  * Returns: (element-type GObject.Value) (transfer container): a #GList with
  * values. Do not change or free the values. Free the list with #g_list_free.
@@ -819,11 +835,11 @@ grl_data_get_all_single_property (GrlData *data,
 
 /**
  * grl_data_get_all_single_property_string:
- * @mdata: a data
+ * @data: a data
  * @key: a metadata key
  *
- * Returns all non-%NULL values for specified key of type string. This ignores
- * completely the related keys.
+ * Returns all non-%NULL values for @key from @data. @key must have been
+ * registered as a string-type key. This ignores related keys.
  *
  * Returns: (element-type utf8) (transfer container): a #GList with values. Do
  * not change or free the strings. Free the list with #g_list_free.
@@ -865,7 +881,9 @@ grl_data_get_all_single_property_string (GrlData *data,
  * @key: a metadata key
  * @index: index of key to be removed, starting at 0
  *
- * Removes key and related keys from position in mdata.
+ * Removes the value at position @index for @key from @data. If there are other
+ * keys related to @key, their values at position @index will also be removed
+ * from @data.
  **/
 void
 grl_data_remove_property (GrlData *data,
@@ -902,7 +920,7 @@ grl_data_remove_property (GrlData *data,
  * @prop: a set of related keys
  * @index: position to be updated, starting at 0
  *
- * Updates the values at position in @data with values in @prop.
+ * Updates the values at position @index in @data with values in @prop.
  *
  * @data will take ownership of @prop, so do not free it after invoking this
  * function.
