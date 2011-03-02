@@ -25,7 +25,18 @@
 /**
  * SECTION:grl-property
  * @short_description: A class where to store related metadata keys.
+ * @see_also: #GrlPluginRegistry, #GrlData
  *
+ * When handling media keys, like artist, URI, mime-type, and so on, some of
+ * these keys are somewhat related: they do not make sense if they are not
+ * accompanied by other keys.
+ *
+ * For instance, media URI and and mime-type are related keys: mime-type does
+ * not make sense if it is not accompanied by an URI. Moreover, for each URI
+ * value, it has a correspondance mime-type value.
+ *
+ * #GrlProperty stores related keys and their values in one place, so user can
+ * handle them in one shot.
  */
 
 #include "grl-property.h"
@@ -103,9 +114,8 @@ grl_property_new (void)
  * grl_property_new_for_key:
  * @key: a metadata key.
  *
- * Creates a new place to store @key and its related keys.
- *
- * Initially it will contain the specified set of keys with no values.
+ * Creates a new property instance that can be used to store @key and related
+ * keys, with their values.
  *
  * Returns: a new #GrlProperty
  **/
