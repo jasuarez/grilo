@@ -93,8 +93,6 @@ GType grl_property_get_type (void) G_GNUC_CONST;
 
 GrlProperty *grl_property_new (void);
 
-GrlProperty *grl_property_new_for_key (GrlKeyID key);
-
 void grl_property_set (GrlProperty *property,
                        GrlKeyID key,
                        const GValue *value);

@@ -177,7 +177,7 @@ grl_media_audio_set_url_data (GrlMediaAudio *data,
                               const gchar *mime,
                               gint bitrate)
 {
-  GrlProperty *prop = grl_property_new_for_key (GRL_METADATA_KEY_URL);
+  GrlProperty *prop = grl_property_new ();
   grl_property_set_string (prop, GRL_METADATA_KEY_URL, url);
   grl_property_set_string (prop, GRL_METADATA_KEY_MIME, mime);
   if (bitrate >= 0) {
@@ -240,7 +240,7 @@ grl_media_audio_add_url_data (GrlMediaAudio *data,
                               const gchar *mime,
                               gint bitrate)
 {
-  GrlProperty *prop = grl_property_new_for_key (GRL_METADATA_KEY_URL);
+  GrlProperty *prop = grl_property_new ();
   grl_property_set_string (prop, GRL_METADATA_KEY_URL, url);
   grl_property_set_string (prop, GRL_METADATA_KEY_MIME, mime);
   if (bitrate >= 0) {

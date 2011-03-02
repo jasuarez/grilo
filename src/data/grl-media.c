@@ -122,7 +122,7 @@ grl_media_set_rating (GrlMedia *media, gfloat rating, gfloat max)
 void
 grl_media_set_url_data (GrlMedia *media, const gchar *url, const gchar *mime)
 {
-  GrlProperty *prop = grl_property_new_for_key (GRL_METADATA_KEY_URL);
+  GrlProperty *prop = grl_property_new ();
   grl_property_set_string (prop, GRL_METADATA_KEY_URL, url);
   grl_property_set_string (prop, GRL_METADATA_KEY_MIME, mime);
   grl_data_set_property (GRL_DATA (media), prop, 0);
@@ -139,7 +139,7 @@ grl_media_set_url_data (GrlMedia *media, const gchar *url, const gchar *mime)
 void
 grl_media_add_url_data (GrlMedia *media, const gchar *url, const gchar *mime)
 {
-  GrlProperty *prop = grl_property_new_for_key (GRL_METADATA_KEY_URL);
+  GrlProperty *prop = grl_property_new ();
   grl_property_set_string (prop, GRL_METADATA_KEY_URL, url);
   grl_property_set_string (prop, GRL_METADATA_KEY_MIME, mime);
   grl_data_add_property (GRL_DATA (media), prop);

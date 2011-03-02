@@ -197,7 +197,7 @@ data_set (GrlData *data, GrlKeyID key, const GValue *value, gboolean overwrite)
 
   if (!prop) {
     /* No property; add it */
-    prop = grl_property_new_for_key (key);
+    prop = grl_property_new ();
     grl_property_set (prop, key, value);
     grl_data_add_property (data, prop);
   } else {
@@ -662,7 +662,7 @@ grl_data_add_string (GrlData *data,
 {
   GrlProperty *prop;
 
-  prop = grl_property_new_for_key (key);
+  prop = grl_property_new ();
   grl_property_set_string (prop, key, strvalue);
   grl_data_add_property (data, prop);
 }
@@ -685,7 +685,7 @@ grl_data_add_int (GrlData *data,
 {
   GrlProperty *prop;
 
-  prop = grl_property_new_for_key (key);
+  prop = grl_property_new ();
   grl_property_set_int (prop, key, intvalue);
   grl_data_add_property (data, prop);
 }
@@ -708,7 +708,7 @@ grl_data_add_float (GrlData *data,
 {
   GrlProperty *prop;
 
-  prop = grl_property_new_for_key (key);
+  prop = grl_property_new ();
   grl_property_set_float (prop, key, floatvalue);
   grl_data_add_property (data, prop);
 }
@@ -733,7 +733,7 @@ grl_data_add_binary (GrlData *data,
 {
   GrlProperty *prop;
 
-  prop = grl_property_new_for_key (key);
+  prop = grl_property_new ();
   grl_property_set_binary (prop, key, buf, size);
   grl_data_add_property (data, prop);
 }

@@ -41,7 +41,6 @@
 
 #include "grl-property.h"
 #include "grl-log.h"
-#include "grl-plugin-registry.h"
 
 struct _GrlPropertyPrivate {
   GHashTable *data;
@@ -108,38 +107,6 @@ GrlProperty *
 grl_property_new (void)
 {
   return g_object_new (GRL_TYPE_PROPERTY, NULL);
-}
-
-/**
- * grl_property_new_for_key:
- * @key: a metadata key.
- *
- * Creates a new property instance that can be used to store @key and related
- * keys, with their values.
- *
- * Returns: a new #GrlProperty
- **/
-GrlProperty *
-grl_property_new_for_key (GrlKeyID key)
-{
-  GrlPluginRegistry *registry = grl_plugin_registry_get_default ();
-  GrlProperty *prop = grl_property_new ();
-  const GList *related_keys = NULL;
-
-  if (!registry) {
-    GRL_ERROR ("Unable to get registry");
-    return prop;
-  }
-
-  related_keys =
-    grl_plugin_registry_lookup_metadata_key_relation (registry, key);
-
-  while (related_keys) {
-    grl_property_add (prop, related_keys->data);
-    related_keys = g_list_next (related_keys);
-  }
-
-  return prop;
 }
 
 /**

@@ -213,7 +213,7 @@ grl_media_video_set_url_data (GrlMediaVideo *video,
                               gint width,
                               gint height)
 {
-  GrlProperty *prop = grl_property_new_for_key (GRL_METADATA_KEY_URL);
+  GrlProperty *prop = grl_property_new ();
   grl_property_set_string (prop, GRL_METADATA_KEY_URL, url);
   grl_property_set_string (prop, GRL_METADATA_KEY_MIME, mime);
   if (framerate >= 0) {
@@ -247,7 +247,7 @@ grl_media_video_add_url_data (GrlMediaVideo *video,
                               gint width,
                               gint height)
 {
-  GrlProperty *prop = grl_property_new_for_key (GRL_METADATA_KEY_URL);
+  GrlProperty *prop = grl_property_new ();
   grl_property_set_string (prop, GRL_METADATA_KEY_URL, url);
   grl_property_set_string (prop, GRL_METADATA_KEY_MIME, mime);
   if (framerate >= 0) {
