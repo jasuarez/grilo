@@ -147,8 +147,8 @@ grl_property_new_for_key (GrlKeyID key)
  * @property: property to retrieve value
  * @key: (type Grl.KeyID): key to look up.
  *
- * Get the value associated with the key. If it does not contain any value,
- * %NULL will be returned.
+ * Get the value associated with @key from @property. If it does not contain any
+ * value, %NULL will be returned.
  *
  * Returns: (transfer none): a #GValue. This value should not be modified nor
  * freed by user.
@@ -169,11 +169,11 @@ grl_property_get (GrlProperty *property,
  * @key: (type Grl.KeyID): key to change or add
  * @value: the new value
  *
- * Sets the value associated with the key. Old value is freed and the new one is
- * set.
+ * Sets the value associated with @key into @property. Old value is freed and
+ * the new one is set.
  *
- * Also, checks that value is compliant with the key specification, modifying it
- * accordingly. For instance, if the key requires a number between 0 and 10, but
+ * Also, checks that @value is compliant with @key specification, modifying it
+ * accordingly. For instance, if @key requires a number between 0 and 10, but
  * value is outside this range, it will be adapted accordingly.
  **/
 void
@@ -212,8 +212,8 @@ grl_property_set (GrlProperty *property,
  * @key: (type Grl.KeyID): key to change or add
  * @strvalue: the new value
  *
- * Sets the value associated with the key. Old value is freed and the new one is
- * set.
+ * Sets the value associated with @key into @property. @key must have been
+ * registered as a strying-type key. Old value is freed and the new one is set.
  **/
 void
 grl_property_set_string (GrlProperty *property,
@@ -236,10 +236,10 @@ grl_property_set_string (GrlProperty *property,
  * @property: property to inspect
  * @key: (type Grl.KeyID): key to use
  *
- * Returns the value associated with the key. If key has no value, or value is
- * not string, or key is not in property, then %NULL is returned.
+ * Returns the value associated with @key from @property. If @key has no value,
+ * or value is not string, or @key is not in @property, then %NULL is returned.
  *
- * Returns: string associated with key, or %NULL in other case. Caller should
+ * Returns: string associated with @key, or %NULL in other case. Caller should
  * not change nor free the value.
  **/
 const gchar *
@@ -261,7 +261,8 @@ grl_property_get_string (GrlProperty *property,
  * @key: (type Grl.KeyID): key to change or add
  * @intvalue: the new value
  *
- * Sets the value associated with the key. Old value is replaced by the new one.
+ * Sets the value associated with @key into @property. @key must have been
+ * registered as an int-type key. Old value is replaced by the new one.
  **/
 void
 grl_property_set_int (GrlProperty *property,
@@ -279,10 +280,10 @@ grl_property_set_int (GrlProperty *property,
  * @property: property to inspect
  * @key: (type Grl.KeyID): key to use
  *
- * Returns the value associated with the key. If key has no value, or value is
- * not a gint, or key is not in property, then 0 is returned.
+ * Returns the value associated with @key from @property. If @key has no value,
+ * or value is not a gint, or @key is not in @property, then 0 is returned.
  *
- * Returns: int value associated with key, or 0 in other case.
+ * Returns: int value associated with @key, or 0 in other case.
  **/
 gint
 grl_property_get_int (GrlProperty *property,
@@ -303,7 +304,8 @@ grl_property_get_int (GrlProperty *property,
  * @key: (type Grl.KeyID): key to change or add
  * @floatvalue: the new value
  *
- * Sets the value associated with the key. Old value is replaced by the new one.
+ * Sets the value associated with @key into @property. @key must have been
+ * registered as a float-type key. Old value is replaced by the new one.
  **/
 void
 grl_property_set_float (GrlProperty *property,
@@ -321,10 +323,10 @@ grl_property_set_float (GrlProperty *property,
  * @property: property to inspect
  * @key: (type Grl.KeyID): key to use
  *
- * Returns the value associated with the key. If key has no value, or value is
- * not a gfloat, or key is not in property, then 0 is returned.
+ * Returns the value associated with @key from @property. If @key has no value,
+ * or value is not a gfloat, or @key is not in @property, then 0 is returned.
  *
- * Returns: float value associated with key, or 0 in other case.
+ * Returns: float value associated with @key, or 0 in other case.
  **/
 gfloat
 grl_property_get_float (GrlProperty *property,
@@ -346,7 +348,8 @@ grl_property_get_float (GrlProperty *property,
  * @buf: buffer holding the property
  * @size: size of the buffer
  *
- * Sets the value associated with the key. Old value is replaced by the new one.
+ * Sets the value associated with @key into @property. @key must have been
+ * registered as a binary-type key. Old value is replaced by the new one.
  **/
 void
 grl_property_set_binary (GrlProperty *property,
@@ -371,13 +374,13 @@ grl_property_set_binary (GrlProperty *property,
  * grl_property_get_binary:
  * @property: property to inspect
  * @key: (type Grl.KeyID): key to use
- * @size: location to store the buffer size
+ * @size: (out): location to store the buffer size
  *
- * Returns the value associated with the key. If key has no value, or value is
- * not a gfloat, or key is not in property, then 0 is returned.
+ * Returns the value associated with @key from @property. If @key has no value,
+ * or value is not a binary, or @key is not in @property, then 0 is returned.
  *
- * Returns: buffer location associated with the key, or %NULL in other case. If
- * successful size will be set the to the buffer size.
+ * Returns: buffer location associated with @key, or %NULL in other case. If
+ * successful @size will be set to the buffer size.
  **/
 const guint8 *
 grl_property_get_binary (GrlProperty *property,
@@ -404,7 +407,7 @@ grl_property_get_binary (GrlProperty *property,
  * @property: property to change
  * @key: (type Grl.KeyID): key to add
  *
- * Adds a new key to property, with no value. If key already exists, it does
+ * Adds a new @key to @property, with no value. If @key already exists, it does
  * nothing.
  **/
 void
@@ -421,8 +424,8 @@ grl_property_add (GrlProperty *property,
  * @property: property to change
  * @key: (type Grl.KeyID): key to remove
  *
- * Removes key from property, freeing its value. If key is not in property, then
- * it does nothing.
+ * Removes @key from @property, freeing its value. If @key is not in @property,
+ * then it does nothing.
  **/
 void
 grl_property_remove (GrlProperty *property, GrlKeyID key)
@@ -437,9 +440,9 @@ grl_property_remove (GrlProperty *property, GrlKeyID key)
  * @property: property to inspect
  * @key: (type Grl.KeyID): key to search
  *
- * Checks if key is in property.
+ * Checks if @key is in @property.
  *
- * Returns: %TRUE if key is in property, %FALSE in other case.
+ * Returns: %TRUE if @key is in @property, %FALSE in other case.
  **/
 gboolean
 grl_property_has_key (GrlProperty *property,
@@ -455,7 +458,9 @@ grl_property_has_key (GrlProperty *property,
  * @property: property to inspect
  * @include_unknown: %TRUE if keys with no value must be included
  *
- * Returns a list with keys contained in property.
+ * Returns a list with keys contained in @property. If @include_unknown is
+ * %FALSE, only those keys in @property that have actually a value will be
+ * returned.
  *
  * Returns: (transfer container) (element-type Grl.KeyID): an array
  * with the keys. The content of the list should not be modified or freed. Use
@@ -483,9 +488,9 @@ grl_property_get_keys (GrlProperty *property,
  * @property: property to inspect
  * @key: (type Grl.KeyID): key to search
  *
- * Checks if the key has a value.
+ * Checks if @key has a value in @property.
  *
- * Returns: TRUE if key has a value.
+ * Returns: %TRUE if @key has a value.
  **/
 gboolean
 grl_property_key_is_known (GrlProperty *property,
