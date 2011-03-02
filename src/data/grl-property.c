@@ -110,6 +110,75 @@ grl_property_new (void)
 }
 
 /**
+ * grl_property_new_valist:
+ * @key: first key
+ * @args: #va_list of value, followed by (key,value) pairs to insert
+ *
+ * Creates a new #GrlProperty containing pairs of (key, value). Finish the list with %NULL.
+ *
+ * In case of a binary-type key, the expected element is (key, value, size).
+ *
+ * value type will be extracted from key information.
+ *
+ * Returns: a new #GrlProperty
+ **/
+GrlProperty *
+grl_property_new_valist (GrlKeyID key,
+                         va_list args)
+{
+  GType key_type;
+  GrlKeyID next_key;
+  GrlProperty *prop;
+  gpointer next_value;
+
+  prop = grl_property_new ();
+
+  next_key = key;
+  while (next_key) {
+    key_type = GRL_METADATA_KEY_GET_TYPE (next_key);
+    if (key_type == G_TYPE_STRING) {
+      grl_property_set_string (prop, next_key, va_arg (args, gchar *));
+    } else if (key_type == G_TYPE_INT) {
+      grl_property_set_int (prop, next_key, va_arg (args, gint));
+    } else if (key_type == G_TYPE_FLOAT) {
+      grl_property_set_float (prop, next_key, va_arg (args, double));
+    } else if (key_type == G_TYPE_BYTE_ARRAY) {
+      next_value = va_arg (args, gpointer);
+      grl_property_set_binary (prop, next_key, next_value, va_arg (args, gsize));
+    }
+    next_key = va_arg (args, GrlKeyID);
+  }
+
+  return prop;
+}
+
+/**
+ * grl_property_new_with_keys: (skip)
+ * @key: first key
+ * @...: value, following by list of (key, value)
+ *
+ * Creates a initial #GrlProperty containing the list of (key, value) pairs. Finish the list with %NULL.
+ *
+ * For more information see #grl_property_new_valist.
+
+ * Returns: a new #GrlProperty
+ **/
+GrlProperty *
+grl_property_new_with_keys (GrlKeyID key,
+                            ...)
+{
+  GrlProperty *prop;
+  va_list args;
+
+  va_start (args, key);
+  prop = grl_property_new_valist (key, args);
+  va_end (args);
+
+  return prop;
+}
+
+
+/**
  * grl_property_get:
  * @property: property to retrieve value
  * @key: (type Grl.KeyID): key to look up.
