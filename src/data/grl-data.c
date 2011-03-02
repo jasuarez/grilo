@@ -619,7 +619,7 @@ grl_data_add_property (GrlData *data,
   keys = grl_property_get_keys (prop, TRUE);
   if (!keys) {
     /* Ignore empty properties */
-    GRL_WARNING ("Empty set of values");
+    GRL_WARNING ("Trying to add an empty GrlProperty to GrlData");
     g_object_unref (prop);
     return;
   }
@@ -782,9 +782,8 @@ grl_data_get_property (GrlData *data,
   prop = g_list_nth_data (prop_list, index);
 
   if (!prop) {
-      /* GRL_WARNING ("%s: index %u out of range", __FUNCTION__, index); */
-    GRL_WARNING("oUT OF RANGE");
-      return NULL;
+    GRL_WARNING ("%s: index %u out of range", __FUNCTION__, index);
+    return NULL;
   }
 
   return prop;
@@ -843,7 +842,7 @@ grl_data_get_all_single_property_string (GrlData *data,
 
   /* Verify key is of type string */
   if (GRL_METADATA_KEY_GET_TYPE (key) != G_TYPE_STRING) {
-    GRL_WARNING ("Wrong type (not string)");
+    GRL_WARNING ("%s: requested key is not of type string", __FUNCTION__);
     return NULL;
   }
 
@@ -923,7 +922,7 @@ grl_data_set_property (GrlData *data,
 
   keys = grl_property_get_keys (prop, TRUE);
   if (!keys) {
-    GRL_WARNING ("Empty properties");
+    GRL_WARNING ("Trying to set an empty GrlProperty into GrlData");
     g_object_unref (prop);
     return;
   }

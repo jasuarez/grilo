@@ -117,7 +117,7 @@ grl_property_new_for_key (GrlKeyID key)
   const GList *related_keys = NULL;
 
   if (!registry) {
-    GRL_WARNING ("Unable to get registry");
+    GRL_ERROR ("Unable to get registry");
     return prop;
   }
 
