@@ -146,7 +146,7 @@ GList *grl_data_get_all_single_related_keys (GrlData *data, GrlKeyID key);
 
 GList *grl_data_get_all_single_related_keys_string (GrlData *data, GrlKeyID key);
 
-void grl_data_remove_related_keys (GrlData *data, GrlKeyID key, guint index);
+void grl_data_remove_nth (GrlData *data, GrlKeyID key, guint index);
 
 void grl_data_set_related_keys (GrlData *data, GrlRelatedKeys *relkeys, guint index);
 

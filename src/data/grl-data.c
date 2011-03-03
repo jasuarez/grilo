@@ -877,7 +877,7 @@ grl_data_get_all_single_related_keys_string (GrlData *data,
 }
 
 /**
- * grl_data_remove_related_keys:
+ * grl_data_remove_nth:
  * @data: a data
  * @key: a metadata key
  * @index: index of key to be removed, starting at 0
@@ -887,9 +887,9 @@ grl_data_get_all_single_related_keys_string (GrlData *data,
  * from @data.
  **/
 void
-grl_data_remove_related_keys (GrlData *data,
-                              GrlKeyID key,
-                              guint index)
+grl_data_remove_nth (GrlData *data,
+                     GrlKeyID key,
+                     guint index)
 {
   GList *relkeys_element;
   GList *relkeys_list;
