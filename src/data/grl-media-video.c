@@ -103,7 +103,7 @@ grl_media_video_set_size (GrlMediaVideo *video,
 
 /**
  * grl_media_video_set_width:
- * @data: the media instance
+ * @video: the media instance
  * @width: the video's width
  *
  * Set the width of the video
@@ -111,16 +111,16 @@ grl_media_video_set_size (GrlMediaVideo *video,
  * Since: 0.1.4
  */
 void
-grl_media_video_set_width (GrlMediaVideo *data, gint width)
+grl_media_video_set_width (GrlMediaVideo *video, gint width)
 {
-  grl_data_set_int (GRL_DATA (data),
+  grl_data_set_int (GRL_DATA (video),
                     GRL_METADATA_KEY_WIDTH,
                     width);
 }
 
 /**
  * grl_media_video_set_height:
- * @data: the media instance
+ * @video: the media instance
  * @height: the video's height
  *
  * Set the height of the video
@@ -128,16 +128,16 @@ grl_media_video_set_width (GrlMediaVideo *data, gint width)
  * Since: 0.1.4
  */
 void
-grl_media_video_set_height (GrlMediaVideo *data, gint height)
+grl_media_video_set_height (GrlMediaVideo *video, gint height)
 {
-  grl_data_set_int (GRL_DATA (data),
+  grl_data_set_int (GRL_DATA (video),
                     GRL_METADATA_KEY_HEIGHT,
                     height);
 }
 
 /**
  * grl_media_video_set_framerate:
- * @data: the media instance
+ * @video: the media instance
  * @framerate: the video's framerate
  *
  * Set the framerate of the video
@@ -145,53 +145,53 @@ grl_media_video_set_height (GrlMediaVideo *data, gint height)
  * Since: 0.1.4
  */
 void
-grl_media_video_set_framerate (GrlMediaVideo *data, gfloat framerate)
+grl_media_video_set_framerate (GrlMediaVideo *video, gfloat framerate)
 {
-  grl_data_set_float (GRL_DATA (data),
+  grl_data_set_float (GRL_DATA (video),
                       GRL_METADATA_KEY_FRAMERATE,
                       framerate);
 }
 
 /**
  * grl_media_video_get_width:
- * @data: the media instance
+ * @video: the media instance
  *
  * Returns: the width of the video
  *
  * Since: 0.1.4
  */
 gint
-grl_media_video_get_width (GrlMediaVideo *data)
+grl_media_video_get_width (GrlMediaVideo *video)
 {
-  return grl_data_get_int (GRL_DATA (data), GRL_METADATA_KEY_WIDTH);
+  return grl_data_get_int (GRL_DATA (video), GRL_METADATA_KEY_WIDTH);
 }
 
 /**
  * grl_media_video_get_height:
- * @data: the media instance
+ * @video: the media instance
  *
  * Returns: the height of the video
  *
  * Since: 0.1.4
  */
 gint
-grl_media_video_get_height (GrlMediaVideo *data)
+grl_media_video_get_height (GrlMediaVideo *video)
 {
-  return grl_data_get_int (GRL_DATA (data), GRL_METADATA_KEY_HEIGHT);
+  return grl_data_get_int (GRL_DATA (video), GRL_METADATA_KEY_HEIGHT);
 }
 
 /**
  * grl_media_video_get_framerate:
- * @data: the media instance
+ * @video: the media instance
  *
  * Returns: the framerate of the video
  *
  * Since: 0.1.4
  */
 gfloat
-grl_media_video_get_framerate (GrlMediaVideo *data)
+grl_media_video_get_framerate (GrlMediaVideo *video)
 {
-  return grl_data_get_float (GRL_DATA (data), GRL_METADATA_KEY_FRAMERATE);
+  return grl_data_get_float (GRL_DATA (video), GRL_METADATA_KEY_FRAMERATE);
 }
 
 /**
@@ -238,7 +238,7 @@ grl_media_video_set_url_data (GrlMediaVideo *video,
  * @height: video height, or -1 to ignore
  *
  * Sets all the keys related with the URL of a media resource and adds it to
- * @data (useful for resources with more than one URL).
+ * @video (useful for resources with more than one URL).
  **/
 void
 grl_media_video_add_url_data (GrlMediaVideo *video,

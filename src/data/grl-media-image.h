@@ -85,13 +85,13 @@ struct _GrlMediaImage
   gpointer _grl_reserved[GRL_PADDING_SMALL];
 };
 
-void grl_media_image_set_width (GrlMediaImage *data, gint width);
+void grl_media_image_set_width (GrlMediaImage *image, gint width);
 
-void grl_media_image_set_height (GrlMediaImage *data, gint height);
+void grl_media_image_set_height (GrlMediaImage *image, gint height);
 
-gint grl_media_image_get_width (GrlMediaImage *data);
+gint grl_media_image_get_width (GrlMediaImage *image);
 
-gint grl_media_image_get_height (GrlMediaImage *data);
+gint grl_media_image_get_height (GrlMediaImage *image);
 
 GType grl_media_image_get_type (void) G_GNUC_CONST;
 GrlMedia *grl_media_image_new (void);

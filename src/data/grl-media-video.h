@@ -85,17 +85,17 @@ struct _GrlMediaVideo
   gpointer _grl_reserved[GRL_PADDING_SMALL];
 };
 
-void grl_media_video_set_width (GrlMediaVideo *data, gint width);
+void grl_media_video_set_width (GrlMediaVideo *video, gint width);
 
-void grl_media_video_set_height (GrlMediaVideo *data, gint height);
+void grl_media_video_set_height (GrlMediaVideo *video, gint height);
 
-void grl_media_video_set_framerate (GrlMediaVideo *data, gfloat framerate);
+void grl_media_video_set_framerate (GrlMediaVideo *video, gfloat framerate);
 
-gint grl_media_video_get_width (GrlMediaVideo *data);
+gint grl_media_video_get_width (GrlMediaVideo *video);
 
-gint grl_media_video_get_height (GrlMediaVideo *data);
+gint grl_media_video_get_height (GrlMediaVideo *video);
 
-gfloat grl_media_video_get_framerate (GrlMediaVideo *data);
+gfloat grl_media_video_get_framerate (GrlMediaVideo *video);
 
 GType grl_media_video_get_type (void) G_GNUC_CONST;
 
