@@ -229,7 +229,7 @@ grl_media_image_get_height (GrlMediaImage *data)
  * @width: the width, or %NULL to ignore
  * @height: the height, or %NULL to ignore
  *
- * Returns: the url of image, as well as its mime-type, width and height.
+ * Returns: all the keys related with the URL of an image resource in one go.
  **/
 const gchar *
 grl_media_image_get_url_data (GrlMediaImage *image,
@@ -248,7 +248,8 @@ grl_media_image_get_url_data (GrlMediaImage *image,
  * @width: the width, or %NULL to ignore
  * @height: the height, or %NULL to ignore
  *
- * Returns: the n-th url of image, as well as its mime-type, width and height.
+ * Returns: all the keys related with the URL number @index of an image resource
+ * in one go.
  **/
 const gchar *
 grl_media_image_get_url_data_nth (GrlMediaImage *image,

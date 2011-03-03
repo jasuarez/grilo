@@ -169,7 +169,7 @@ grl_media_audio_set_bitrate (GrlMediaAudio *data, gint bitrate)
  * @mime: the @url mime-type
  * @bitrate: the @url bitrate, or -1 to ignore
  *
- * Set the url of the audio, as well as its mime-type and bitrate.
+ * Sets all the keys related with the URL of an audio resource in one go.
  **/
 void
 grl_media_audio_set_url_data (GrlMediaAudio *data,
@@ -232,7 +232,8 @@ grl_media_audio_add_lyrics (GrlMediaAudio *data, const gchar *lyrics)
  * @mime: the @url mime-type
  * @bitrate: the @url bitrate, or -1 to ignore
  *
- * Adds a new url to @data, as well as its mime-type and bitrate.
+ * Sets all the keys related with the URL of a media resource and adds it to
+ * @data (useful for resources with more than one URL).
  **/
 void
 grl_media_audio_add_url_data (GrlMediaAudio *data,
@@ -266,6 +267,7 @@ grl_media_audio_get_artist (GrlMediaAudio *data)
 /**
  * grl_media_audio_get_artist_nth:
  * @data: the media instance
+ * @index: element to retrieve, starting at 0
  *
  * Returns: the n-th artist of the audio
  */
@@ -313,6 +315,7 @@ grl_media_audio_get_genre (GrlMediaAudio *data)
 /**
  * grl_media_audio_get_genre_nth:
  * @data: the media instance
+ * @index: element to retrieve, starting at 0
  *
  * Returns: the n-th genre of the audio
  */
@@ -346,6 +349,7 @@ grl_media_audio_get_lyrics (GrlMediaAudio *data)
 /**
  * grl_media_audio_get_lyrics_nth:
  * @data: the media instance
+ * @index: element to retrieve, starting at 0
  *
  * Returns: the n-th lyrics of the audio
  */
@@ -382,7 +386,7 @@ grl_media_audio_get_bitrate (GrlMediaAudio *data)
  * @mime: (out) (transfer none): the url mime-type, or %NULL to ignore
  * @bitrate: (out): the url bitrate, or %NULL to ignore
  *
- * Returns: the url of the audio, as well as its mime-type and bitrate.
+ * Returns: all the keys related with the URL of an audio resource in one go.
  */
 const gchar *
 grl_media_audio_get_url_data (GrlMediaAudio *data,
@@ -395,10 +399,12 @@ grl_media_audio_get_url_data (GrlMediaAudio *data,
 /**
  * grl_media_audio_get_url_data_nth:
  * @data: the media instance
+ * @index: element to retrieve, starting at 0
  * @mime: (out) (transfer none): the url mime-type, or %NULL to ignore
  * @bitrate: (out): the url bitrate, or %NULL to ignore
  *
- * Returns: the n-th url of the audio, as well as its mime-type and bitrate.
+ * Returns: all the keys related with the URL number @index of an audio resource
+ * in one go.
  */
 const gchar *
 grl_media_audio_get_url_data_nth (GrlMediaAudio *data,
