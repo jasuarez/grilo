@@ -137,9 +137,6 @@ const guint8 *grl_related_keys_get_binary(GrlRelatedKeys *relkeys,
 void grl_related_keys_add (GrlRelatedKeys *relkeys,
                            GrlKeyID key);
 
-void grl_related_keys_remove (GrlRelatedKeys *relkeys,
-                              GrlKeyID key);
-
 gboolean grl_related_keys_has_key (GrlRelatedKeys *relkeys,
                                    GrlKeyID key);
 

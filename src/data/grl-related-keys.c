@@ -463,22 +463,6 @@ grl_related_keys_add (GrlRelatedKeys *relkeys,
 }
 
 /**
- * grl_related_keys_remove:
- * @relkeys: set of related keys to change
- * @key: (type Grl.KeyID): key to remove
- *
- * Removes @key from @relkeys, freeing its value. If @key is not in @relkeys,
- * then it does nothing.
- **/
-void
-grl_related_keys_remove (GrlRelatedKeys *relkeys, GrlKeyID key)
-{
-  g_return_if_fail (GRL_IS_RELATED_KEYS (relkeys));
-
-  g_hash_table_remove (relkeys->priv->data, key);
-}
-
-/**
  * grl_related_keys_has_key:
  * @relkeys: set of related keys to inspect
  * @key: (type Grl.KeyID): key to search
