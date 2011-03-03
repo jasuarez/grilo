@@ -184,34 +184,6 @@ get_sample_key (GrlKeyID key)
   }
 }
 
-/* Sets the first value of data. If it already has a value and overwrite is
-   %TRUE it is replaced */
-static void
-data_set (GrlData *data, GrlKeyID key, const GValue *value, gboolean overwrite)
-{
-  GrlRelatedKeys *relkeys = NULL;
-
-  /* Get the right set of related keys */
-  if (grl_data_length (data, key) > 0) {
-    relkeys = grl_data_get_related_keys (data, key, 0);
-  }
-
-  if (!relkeys) {
-    /* No related keys; add them */
-    relkeys = grl_related_keys_new ();
-    grl_related_keys_set (relkeys, key, value);
-    grl_data_add_related_keys (data, relkeys);
-  } else {
-    if (grl_related_keys_key_is_known (relkeys, key) && !overwrite) {
-      /* relkeys already has a value, and we can not overwrite it */
-      return;
-    } else {
-      /* Set the new value */
-      grl_related_keys_set (relkeys, key, value);
-    }
-  }
-}
-
 /* ================ API ================ */
 
 /**
@@ -280,10 +252,31 @@ grl_data_get (GrlData *data, GrlKeyID key)
 void
 grl_data_set (GrlData *data, GrlKeyID key, const GValue *value)
 {
+  GrlRelatedKeys *relkeys = NULL;
+
   g_return_if_fail (GRL_IS_DATA (data));
   g_return_if_fail (key);
 
-  data_set (data, key, value, data->priv->overwrite);
+  /* Get the right set of related keys */
+  if (grl_data_length (data, key) > 0) {
+    relkeys = grl_data_get_related_keys (data, key, 0);
+  }
+
+  if (!relkeys) {
+    /* No related keys; add them */
+    relkeys = grl_related_keys_new ();
+    grl_related_keys_set (relkeys, key, value);
+    grl_data_add_related_keys (data, relkeys);
+  } else {
+    if (grl_related_keys_key_is_known (relkeys, key) &&
+        !data->priv->overwrite) {
+      /* relkeys already has a value, and we can not overwrite it */
+      return;
+    } else {
+      /* Set the new value */
+      grl_related_keys_set (relkeys, key, value);
+    }
+  }
 }
 
 /**
@@ -511,8 +504,8 @@ grl_data_add (GrlData *data, GrlKeyID key)
  * @data: data to change
  * @key: (type Grl.KeyID): key to remove
  *
- * Removes the first value for @key from @data. If @key is not in @data, or
- * value is %NULL, then it does nothing.
+ * Removes the first value for @key from @data. If there are other keys related
+ * to @key their values will also be removed from @data.
  *
  * Notice this function ignores the value of #overwrite property.
  *
@@ -521,10 +514,7 @@ grl_data_add (GrlData *data, GrlKeyID key)
 void
 grl_data_remove (GrlData *data, GrlKeyID key)
 {
-  g_return_if_fail (GRL_IS_DATA (data));
-  g_return_if_fail (key);
-
-  data_set (data, key, NULL, TRUE);
+  grl_data_remove_nth (data, key, 0);
 }
 
 /**
