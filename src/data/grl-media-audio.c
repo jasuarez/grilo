@@ -177,13 +177,13 @@ grl_media_audio_set_url_data (GrlMediaAudio *data,
                               const gchar *mime,
                               gint bitrate)
 {
-  GrlProperty *prop = grl_property_new ();
-  grl_property_set_string (prop, GRL_METADATA_KEY_URL, url);
-  grl_property_set_string (prop, GRL_METADATA_KEY_MIME, mime);
+  GrlRelatedKeys *relkeys = grl_related_keys_new ();
+  grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_URL, url);
+  grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_MIME, mime);
   if (bitrate >= 0) {
-    grl_property_set_int (prop, GRL_METADATA_KEY_BITRATE, bitrate);
+    grl_related_keys_set_int (relkeys, GRL_METADATA_KEY_BITRATE, bitrate);
   }
-  grl_data_set_property (GRL_DATA (data), prop, 0);
+  grl_data_set_related_keys (GRL_DATA (data), relkeys, 0);
 }
 
 /**
@@ -240,13 +240,13 @@ grl_media_audio_add_url_data (GrlMediaAudio *data,
                               const gchar *mime,
                               gint bitrate)
 {
-  GrlProperty *prop = grl_property_new ();
-  grl_property_set_string (prop, GRL_METADATA_KEY_URL, url);
-  grl_property_set_string (prop, GRL_METADATA_KEY_MIME, mime);
+  GrlRelatedKeys *relkeys = grl_related_keys_new ();
+  grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_URL, url);
+  grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_MIME, mime);
   if (bitrate >= 0) {
-    grl_property_set_int (prop, GRL_METADATA_KEY_BITRATE, bitrate);
+    grl_related_keys_set_int (relkeys, GRL_METADATA_KEY_BITRATE, bitrate);
   }
-  grl_data_add_property (GRL_DATA (data), prop);
+  grl_data_add_related_keys (GRL_DATA (data), relkeys);
 }
 
 /**
@@ -272,13 +272,13 @@ grl_media_audio_get_artist (GrlMediaAudio *data)
 const gchar *
 grl_media_audio_get_artist_nth (GrlMediaAudio *data, guint index)
 {
-  GrlProperty *prop =
-    grl_data_get_property (GRL_DATA (data), GRL_METADATA_KEY_ARTIST, index);
+  GrlRelatedKeys *relkeys =
+    grl_data_get_related_keys (GRL_DATA (data), GRL_METADATA_KEY_ARTIST, index);
 
-  if (!prop) {
+  if (!relkeys) {
     return NULL;
   } else {
-    return grl_property_get_string (prop, GRL_METADATA_KEY_ARTIST);
+    return grl_related_keys_get_string (relkeys, GRL_METADATA_KEY_ARTIST);
   }
 }
 
@@ -319,13 +319,13 @@ grl_media_audio_get_genre (GrlMediaAudio *data)
 const gchar *
 grl_media_audio_get_genre_nth (GrlMediaAudio *data, guint index)
 {
-  GrlProperty *prop =
-    grl_data_get_property (GRL_DATA (data), GRL_METADATA_KEY_GENRE, index);
+  GrlRelatedKeys *relkeys =
+    grl_data_get_related_keys (GRL_DATA (data), GRL_METADATA_KEY_GENRE, index);
 
-  if (!prop) {
+  if (!relkeys) {
     return NULL;
   } else {
-    return grl_property_get_string (prop, GRL_METADATA_KEY_GENRE);
+    return grl_related_keys_get_string (relkeys, GRL_METADATA_KEY_GENRE);
   }
 }
 
@@ -352,13 +352,13 @@ grl_media_audio_get_lyrics (GrlMediaAudio *data)
 const gchar *
 grl_media_audio_get_lyrics_nth (GrlMediaAudio *data, guint index)
 {
-  GrlProperty *prop =
-    grl_data_get_property (GRL_DATA (data), GRL_METADATA_KEY_LYRICS, index);
+  GrlRelatedKeys *relkeys =
+    grl_data_get_related_keys (GRL_DATA (data), GRL_METADATA_KEY_LYRICS, index);
 
-  if (!prop) {
+  if (!relkeys) {
     return NULL;
   } else {
-    return grl_property_get_string (prop, GRL_METADATA_KEY_LYRICS);
+    return grl_related_keys_get_string (relkeys, GRL_METADATA_KEY_LYRICS);
   }
 }
 
@@ -406,20 +406,21 @@ grl_media_audio_get_url_data_nth (GrlMediaAudio *data,
                                   gchar **mime,
                                   gint *bitrate)
 {
-  GrlProperty *prop =
-    grl_data_get_property (GRL_DATA (data), GRL_METADATA_KEY_URL, index);
+  GrlRelatedKeys *relkeys =
+    grl_data_get_related_keys (GRL_DATA (data), GRL_METADATA_KEY_URL, index);
 
-  if (!prop) {
+  if (!relkeys) {
     return NULL;
   }
 
   if (mime) {
-    *mime = (gchar *) grl_property_get_string (prop, GRL_METADATA_KEY_MIME);
+    *mime = (gchar *) grl_related_keys_get_string (relkeys,
+                                                   GRL_METADATA_KEY_MIME);
   }
 
   if (bitrate) {
-    *bitrate = grl_property_get_int (prop, GRL_METADATA_KEY_BITRATE);
+    *bitrate = grl_related_keys_get_int (relkeys, GRL_METADATA_KEY_BITRATE);
   }
 
-  return grl_property_get_string (prop, GRL_METADATA_KEY_URL);
+  return grl_related_keys_get_string (relkeys, GRL_METADATA_KEY_URL);
 }

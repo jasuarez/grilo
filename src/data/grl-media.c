@@ -25,7 +25,8 @@
 /**
  * SECTION:grl-media
  * @short_description: A multimedia data transfer object
- * @see_also: #GrlData, #GrlMediaBox, #GrlMediaVideo, #GrlMediaAudio, #GrlMediaImage
+ * @see_also: #GrlData, #GrlMediaBox, #GrlMediaVideo, #GrlMediaAudio,
+ * #GrlMediaImage
  *
  * This high level class represents a multimedia item. It has methods to
  * set and get properties like author, title, description, and so on.
@@ -70,8 +71,8 @@ static void
 grl_media_finalize (GObject *object)
 {
   GRL_DEBUG ("grl_media_finalize (%s)",
-                 grl_data_get_string (GRL_DATA (object),
-                                      GRL_METADATA_KEY_TITLE));
+             grl_data_get_string (GRL_DATA (object),
+                                  GRL_METADATA_KEY_TITLE));
   g_signal_handlers_destroy (object);
   G_OBJECT_CLASS (grl_media_parent_class)->finalize (object);
 }
@@ -122,10 +123,10 @@ grl_media_set_rating (GrlMedia *media, gfloat rating, gfloat max)
 void
 grl_media_set_url_data (GrlMedia *media, const gchar *url, const gchar *mime)
 {
-  GrlProperty *prop = grl_property_new ();
-  grl_property_set_string (prop, GRL_METADATA_KEY_URL, url);
-  grl_property_set_string (prop, GRL_METADATA_KEY_MIME, mime);
-  grl_data_set_property (GRL_DATA (media), prop, 0);
+  GrlRelatedKeys *relkeys = grl_related_keys_new ();
+  grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_URL, url);
+  grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_MIME, mime);
+  grl_data_set_related_keys (GRL_DATA (media), relkeys, 0);
 }
 
 /**
@@ -139,10 +140,10 @@ grl_media_set_url_data (GrlMedia *media, const gchar *url, const gchar *mime)
 void
 grl_media_add_url_data (GrlMedia *media, const gchar *url, const gchar *mime)
 {
-  GrlProperty *prop = grl_property_new ();
-  grl_property_set_string (prop, GRL_METADATA_KEY_URL, url);
-  grl_property_set_string (prop, GRL_METADATA_KEY_MIME, mime);
-  grl_data_add_property (GRL_DATA (media), prop);
+  GrlRelatedKeys *relkeys = grl_related_keys_new ();
+  grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_URL, url);
+  grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_MIME, mime);
+  grl_data_add_related_keys (GRL_DATA (media), relkeys);
 }
 
 /**
@@ -612,7 +613,9 @@ grl_media_set_thumbnail (GrlMedia *data, const gchar *thumbnail)
  * Since: 0.1.9
  */
 void
-grl_media_set_thumbnail_binary (GrlMedia *data, const guint8 *thumbnail, gsize size)
+grl_media_set_thumbnail_binary (GrlMedia *data,
+                                const guint8 *thumbnail,
+                                gsize size)
 {
   grl_data_set_binary (GRL_DATA (data),
                        GRL_METADATA_KEY_THUMBNAIL_BINARY,
@@ -874,18 +877,19 @@ grl_media_get_url_data (GrlMedia *media, gchar **mime)
 const gchar *
 grl_media_get_url_data_nth (GrlMedia *data, guint index, gchar **mime)
 {
-  GrlProperty *prop =
-    grl_data_get_property (GRL_DATA (data), GRL_METADATA_KEY_URL, index);
+  GrlRelatedKeys *relkeys =
+    grl_data_get_related_keys (GRL_DATA (data), GRL_METADATA_KEY_URL, index);
 
-  if (!prop) {
+  if (!relkeys) {
     return NULL;
   }
 
   if (mime) {
-    *mime = (gchar *) grl_property_get_string (prop, GRL_METADATA_KEY_MIME);
+    *mime = (gchar *) grl_related_keys_get_string (relkeys,
+                                                   GRL_METADATA_KEY_MIME);
   }
 
-  return grl_property_get_string (prop, GRL_METADATA_KEY_URL);
+  return grl_related_keys_get_string (relkeys, GRL_METADATA_KEY_URL);
 }
 
 /**
@@ -912,13 +916,13 @@ grl_media_get_author (GrlMedia *data)
 const gchar *
 grl_media_get_author_nth (GrlMedia *data, guint index)
 {
-  GrlProperty *prop =
-    grl_data_get_property (GRL_DATA (data), GRL_METADATA_KEY_AUTHOR, index);
+  GrlRelatedKeys *relkeys =
+    grl_data_get_related_keys (GRL_DATA (data), GRL_METADATA_KEY_AUTHOR, index);
 
-  if (!prop) {
+  if (!relkeys) {
     return NULL;
   } else {
-    return grl_property_get_string (prop, GRL_METADATA_KEY_AUTHOR);
+    return grl_related_keys_get_string (relkeys, GRL_METADATA_KEY_AUTHOR);
   }
 }
 
@@ -988,13 +992,15 @@ grl_media_get_thumbnail (GrlMedia *data)
 const gchar *
 grl_media_get_thumbnail_nth (GrlMedia *data, guint index)
 {
-  GrlProperty *prop =
-    grl_data_get_property (GRL_DATA (data), GRL_METADATA_KEY_THUMBNAIL, index);
+  GrlRelatedKeys *relkeys =
+    grl_data_get_related_keys (GRL_DATA (data),
+                               GRL_METADATA_KEY_THUMBNAIL,
+                               index);
 
-  if (!prop) {
+  if (!relkeys) {
     return NULL;
   } else {
-    return grl_property_get_string (prop, GRL_METADATA_KEY_THUMBNAIL);
+    return grl_related_keys_get_string (relkeys, GRL_METADATA_KEY_THUMBNAIL);
   }
 }
 
@@ -1027,13 +1033,17 @@ grl_media_get_thumbnail_binary (GrlMedia *data, gsize *size)
 const guint8 *
 grl_media_get_thumbnail_binary_nth (GrlMedia *data, gsize *size, guint index)
 {
-  GrlProperty *prop =
-    grl_data_get_property (GRL_DATA (data), GRL_METADATA_KEY_THUMBNAIL, index);
+  GrlRelatedKeys *relkeys =
+    grl_data_get_related_keys (GRL_DATA (data),
+                               GRL_METADATA_KEY_THUMBNAIL,
+                               index);
 
-  if (!prop) {
+  if (!relkeys) {
     return NULL;
   } else {
-    return grl_property_get_binary (prop, GRL_METADATA_KEY_THUMBNAIL, size);
+    return grl_related_keys_get_binary (relkeys,
+                                        GRL_METADATA_KEY_THUMBNAIL,
+                                        size);
   }
 }
 

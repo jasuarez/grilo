@@ -213,19 +213,19 @@ grl_media_video_set_url_data (GrlMediaVideo *video,
                               gint width,
                               gint height)
 {
-  GrlProperty *prop = grl_property_new ();
-  grl_property_set_string (prop, GRL_METADATA_KEY_URL, url);
-  grl_property_set_string (prop, GRL_METADATA_KEY_MIME, mime);
+  GrlRelatedKeys *relkeys = grl_related_keys_new ();
+  grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_URL, url);
+  grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_MIME, mime);
   if (framerate >= 0) {
-    grl_property_set_float (prop, GRL_METADATA_KEY_FRAMERATE, framerate);
+    grl_related_keys_set_float (relkeys, GRL_METADATA_KEY_FRAMERATE, framerate);
   }
   if (width >= 0) {
-    grl_property_set_int (prop, GRL_METADATA_KEY_WIDTH, width);
+    grl_related_keys_set_int (relkeys, GRL_METADATA_KEY_WIDTH, width);
   }
   if (height >= 0) {
-    grl_property_set_int (prop, GRL_METADATA_KEY_HEIGHT, height);
+    grl_related_keys_set_int (relkeys, GRL_METADATA_KEY_HEIGHT, height);
   }
-  grl_data_set_property (GRL_DATA (video), prop, 0);
+  grl_data_set_related_keys (GRL_DATA (video), relkeys, 0);
 }
 
 /**
@@ -247,19 +247,19 @@ grl_media_video_add_url_data (GrlMediaVideo *video,
                               gint width,
                               gint height)
 {
-  GrlProperty *prop = grl_property_new ();
-  grl_property_set_string (prop, GRL_METADATA_KEY_URL, url);
-  grl_property_set_string (prop, GRL_METADATA_KEY_MIME, mime);
+  GrlRelatedKeys *relkeys = grl_related_keys_new ();
+  grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_URL, url);
+  grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_MIME, mime);
   if (framerate >= 0) {
-    grl_property_set_float (prop, GRL_METADATA_KEY_FRAMERATE, framerate);
+    grl_related_keys_set_float (relkeys, GRL_METADATA_KEY_FRAMERATE, framerate);
   }
   if (width >= 0) {
-    grl_property_set_int (prop, GRL_METADATA_KEY_WIDTH, width);
+    grl_related_keys_set_int (relkeys, GRL_METADATA_KEY_WIDTH, width);
   }
   if (height >= 0) {
-    grl_property_set_int (prop, GRL_METADATA_KEY_HEIGHT, height);
+    grl_related_keys_set_int (relkeys, GRL_METADATA_KEY_HEIGHT, height);
   }
-  grl_data_add_property (GRL_DATA (video), prop);
+  grl_data_add_related_keys (GRL_DATA (video), relkeys);
 }
 
 /**
@@ -270,7 +270,8 @@ grl_media_video_add_url_data (GrlMediaVideo *video,
  * @width: the url width, or %NULL to ignore
  * @height: the url height, or %NULL to ignore
  *
- * Returns: the video's url, as well as its mime-type, framerate, width and height.
+ * Returns: the video's url, as well as its mime-type, framerate, width and
+ * height.
  **/
 const gchar *
 grl_media_video_get_url_data (GrlMediaVideo *video,
@@ -279,7 +280,12 @@ grl_media_video_get_url_data (GrlMediaVideo *video,
                               gint *width,
                               gint *height)
 {
-  return grl_media_video_get_url_data_nth (video, 0, mime, framerate, width, height);
+  return grl_media_video_get_url_data_nth (video,
+                                           0,
+                                           mime,
+                                           framerate,
+                                           width,
+                                           height);
 }
 
 /**
@@ -302,28 +308,30 @@ grl_media_video_get_url_data_nth (GrlMediaVideo *video,
                                   gint *width,
                                   gint *height)
 {
-  GrlProperty *prop =
-    grl_data_get_property (GRL_DATA (video), GRL_METADATA_KEY_URL, index);
+  GrlRelatedKeys *relkeys =
+    grl_data_get_related_keys (GRL_DATA (video), GRL_METADATA_KEY_URL, index);
 
-  if (!prop) {
+  if (!relkeys) {
     return NULL;
   }
 
   if (mime) {
-    *mime = (gchar *) grl_property_get_string (prop, GRL_METADATA_KEY_MIME);
+    *mime = (gchar *) grl_related_keys_get_string (relkeys,
+                                                   GRL_METADATA_KEY_MIME);
   }
 
   if (framerate) {
-    *framerate = grl_property_get_float (prop, GRL_METADATA_KEY_FRAMERATE);
+    *framerate = grl_related_keys_get_float (relkeys,
+                                             GRL_METADATA_KEY_FRAMERATE);
   }
 
   if (width) {
-    *width = grl_property_get_int (prop, GRL_METADATA_KEY_WIDTH);
+    *width = grl_related_keys_get_int (relkeys, GRL_METADATA_KEY_WIDTH);
   }
 
   if (height) {
-    *height = grl_property_get_int (prop, GRL_METADATA_KEY_HEIGHT);
+    *height = grl_related_keys_get_int (relkeys, GRL_METADATA_KEY_HEIGHT);
   }
 
-  return grl_property_get_string (prop, GRL_METADATA_KEY_URL);
+  return grl_related_keys_get_string (relkeys, GRL_METADATA_KEY_URL);
 }

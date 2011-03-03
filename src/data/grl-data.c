@@ -25,7 +25,8 @@
 /**
  * SECTION:grl-data
  * @short_description: Low-level class to store data
- * @see_also: #GrlMedia, #GrlMediaBox, #GrlMediaVideo, #GrlMediaAudio, #GrlMediaImage
+ * @see_also: #GrlMedia, #GrlMediaBox, #GrlMediaVideo, #GrlMediaAudio,
+ * #GrlMediaImage
  *
  * This class acts as dictionary where keys and their values can be stored. It
  * is suggested to better high level classes, like #GrlMedia, which
@@ -155,7 +156,7 @@ grl_data_get_gobject_property (GObject *object,
 
 /* ================ Utitilies ================ */
 
-/* Free the list of values, which are of type #GrlProperty */
+/* Free the list of values, which are of type #GrlRelatedKeys */
 static void
 free_list_values (GrlKeyID key, GList *values, gpointer user_data)
 {
@@ -188,25 +189,25 @@ get_sample_key (GrlKeyID key)
 static void
 data_set (GrlData *data, GrlKeyID key, const GValue *value, gboolean overwrite)
 {
-  GrlProperty *prop = NULL;
+  GrlRelatedKeys *relkeys = NULL;
 
-  /* Get the right property */
+  /* Get the right set of related keys */
   if (grl_data_length (data, key) > 0) {
-    prop = grl_data_get_property (data, key, 0);
+    relkeys = grl_data_get_related_keys (data, key, 0);
   }
 
-  if (!prop) {
-    /* No property; add it */
-    prop = grl_property_new ();
-    grl_property_set (prop, key, value);
-    grl_data_add_property (data, prop);
+  if (!relkeys) {
+    /* No related keys; add them */
+    relkeys = grl_related_keys_new ();
+    grl_related_keys_set (relkeys, key, value);
+    grl_data_add_related_keys (data, relkeys);
   } else {
-    if (grl_property_key_is_known (prop, key) && !overwrite) {
-      /* Property already has a value, and we can not overwrite it */
+    if (grl_related_keys_key_is_known (relkeys, key) && !overwrite) {
+      /* relkeys already has a value, and we can not overwrite it */
       return;
     } else {
       /* Set the new value */
-      grl_property_set (prop, key, value);
+      grl_related_keys_set (relkeys, key, value);
     }
   }
 }
@@ -244,20 +245,20 @@ grl_data_new (void)
 const GValue *
 grl_data_get (GrlData *data, GrlKeyID key)
 {
-  GrlProperty *prop = NULL;
+  GrlRelatedKeys *relkeys = NULL;
 
   g_return_val_if_fail (GRL_IS_DATA (data), NULL);
   g_return_val_if_fail (key, NULL);
 
   if (grl_data_length (data, key) > 0) {
-    prop = grl_data_get_property (data, key, 0);
+    relkeys = grl_data_get_related_keys (data, key, 0);
   }
 
-  if (!prop) {
+  if (!relkeys) {
     return NULL;
   }
 
-  return grl_property_get (prop, key);
+  return grl_related_keys_get (relkeys, key);
 }
 
 /**
@@ -602,32 +603,32 @@ grl_data_key_is_known (GrlData *data, GrlKeyID key)
 }
 
 /**
- * grl_data_add_property:
+ * grl_data_add_related_keys:
  * @data: data to change
- * @prop: a set of related properties with their values
+ * @relkeys: a set of related properties with their values
  *
  * Adds a new set of values into @data.
  *
  * All keys in @prop must be related among them.
  *
- * @data will take the ownership of prop, so do not modify it.
+ * @data will take the ownership of @relkeys, so do not modify it.
  **/
 void
-grl_data_add_property (GrlData *data,
-                       GrlProperty *prop)
+grl_data_add_related_keys (GrlData *data,
+                           GrlRelatedKeys *relkeys)
 {
   GList *keys;
-  GList *list_prop;
+  GList *list_relkeys;
   GrlKeyID sample_key;
 
   g_return_if_fail (GRL_IS_DATA (data));
-  g_return_if_fail (GRL_IS_PROPERTY (prop));
+  g_return_if_fail (GRL_IS_RELATED_KEYS (relkeys));
 
-  keys = grl_property_get_keys (prop, TRUE);
+  keys = grl_related_keys_get_keys (relkeys, TRUE);
   if (!keys) {
-    /* Ignore empty properties */
-    GRL_WARNING ("Trying to add an empty GrlProperty to GrlData");
-    g_object_unref (prop);
+    /* Ignore empty set of related keys */
+    GRL_WARNING ("Trying to add an empty GrlRelatedKeys to GrlData");
+    g_object_unref (relkeys);
     return;
   }
 
@@ -635,13 +636,13 @@ grl_data_add_property (GrlData *data,
   g_list_free (keys);
 
   if (!sample_key) {
-    g_object_unref (prop);
+    g_object_unref (relkeys);
     return;
   }
 
-  list_prop = g_hash_table_lookup (data->priv->data, sample_key);
-  list_prop = g_list_append (list_prop, prop);
-  g_hash_table_insert (data->priv->data, sample_key, list_prop);
+  list_relkeys = g_hash_table_lookup (data->priv->data, sample_key);
+  list_relkeys = g_list_append (list_relkeys, relkeys);
+  g_hash_table_insert (data->priv->data, sample_key, list_relkeys);
 }
 
 /**
@@ -660,11 +661,11 @@ grl_data_add_string (GrlData *data,
                      GrlKeyID key,
                      const gchar *strvalue)
 {
-  GrlProperty *prop;
+  GrlRelatedKeys *relkeys;
 
-  prop = grl_property_new ();
-  grl_property_set_string (prop, key, strvalue);
-  grl_data_add_property (data, prop);
+  relkeys = grl_related_keys_new ();
+  grl_related_keys_set_string (relkeys, key, strvalue);
+  grl_data_add_related_keys (data, relkeys);
 }
 
 /**
@@ -683,11 +684,11 @@ grl_data_add_int (GrlData *data,
                   GrlKeyID key,
                   gint intvalue)
 {
-  GrlProperty *prop;
+  GrlRelatedKeys *relkeys;
 
-  prop = grl_property_new ();
-  grl_property_set_int (prop, key, intvalue);
-  grl_data_add_property (data, prop);
+  relkeys = grl_related_keys_new ();
+  grl_related_keys_set_int (relkeys, key, intvalue);
+  grl_data_add_related_keys (data, relkeys);
 }
 
 /**
@@ -706,11 +707,11 @@ grl_data_add_float (GrlData *data,
                     GrlKeyID key,
                     gfloat floatvalue)
 {
-  GrlProperty *prop;
+  GrlRelatedKeys *relkeys;
 
-  prop = grl_property_new ();
-  grl_property_set_float (prop, key, floatvalue);
-  grl_data_add_property (data, prop);
+  relkeys = grl_related_keys_new ();
+  grl_related_keys_set_float (relkeys, key, floatvalue);
+  grl_data_add_related_keys (data, relkeys);
 }
 
 /**
@@ -731,11 +732,11 @@ grl_data_add_binary (GrlData *data,
                      const guint8 *buf,
                      gsize size)
 {
-  GrlProperty *prop;
+  GrlRelatedKeys *relkeys;
 
-  prop = grl_property_new ();
-  grl_property_set_binary (prop, key, buf, size);
-  grl_data_add_property (data, prop);
+  relkeys = grl_related_keys_new ();
+  grl_related_keys_set_binary (relkeys, key, buf, size);
+  grl_data_add_related_keys (data, relkeys);
 }
 
 /**
@@ -765,7 +766,7 @@ grl_data_length (GrlData *data,
 }
 
 /**
- * grl_data_get_property:
+ * grl_data_get_related_keys:
  * @data: a data
  * @key: a metadata key
  * @index: element to retrieve, starting at 0
@@ -773,19 +774,19 @@ grl_data_length (GrlData *data,
  * Returns a set containing the values for @key and related keys at position
  * @index from @data.
  *
- * If user changes any of the values in the property, the changes will become
- * permanent.
+ * If user changes any of the values in the related keys, the changes will
+ * become permanent.
  *
- * Returns: a #GrlProperty. Do not free it.
+ * Returns: a #GrlRelatedKeys. Do not free it.
  **/
-GrlProperty *
-grl_data_get_property (GrlData *data,
-                       GrlKeyID key,
-                       guint index)
+GrlRelatedKeys *
+grl_data_get_related_keys (GrlData *data,
+                           GrlKeyID key,
+                           guint index)
 {
-  GList *prop_list;
+  GList *relkeys_list;
   GrlKeyID sample_key;
-  GrlProperty *prop;
+  GrlRelatedKeys *relkeys;
 
   g_return_val_if_fail (GRL_IS_DATA (data), NULL);
   g_return_val_if_fail (key, NULL);
@@ -795,19 +796,19 @@ grl_data_get_property (GrlData *data,
     return NULL;
   }
 
-  prop_list = g_hash_table_lookup (data->priv->data, sample_key);
-  prop = g_list_nth_data (prop_list, index);
+  relkeys_list = g_hash_table_lookup (data->priv->data, sample_key);
+  relkeys = g_list_nth_data (relkeys_list, index);
 
-  if (!prop) {
+  if (!relkeys) {
     GRL_WARNING ("%s: index %u out of range", __FUNCTION__, index);
     return NULL;
   }
 
-  return prop;
+  return relkeys;
 }
 
 /**
- * grl_data_get_all_single_property:
+ * grl_data_get_all_single_related_keys:
  * @data: a data
  * @key: a metadata key
  *
@@ -817,8 +818,8 @@ grl_data_get_property (GrlData *data,
  * values. Do not change or free the values. Free the list with #g_list_free.
  **/
 GList *
-grl_data_get_all_single_property (GrlData *data,
-                                  GrlKeyID key)
+grl_data_get_all_single_related_keys (GrlData *data,
+                                      GrlKeyID key)
 {
   GrlKeyID sample_key;
 
@@ -834,7 +835,7 @@ grl_data_get_all_single_property (GrlData *data,
 }
 
 /**
- * grl_data_get_all_single_property_string:
+ * grl_data_get_all_single_related_keys_string:
  * @data: a data
  * @key: a metadata key
  *
@@ -845,8 +846,8 @@ grl_data_get_all_single_property (GrlData *data,
  * not change or free the strings. Free the list with #g_list_free.
  **/
 GList *
-grl_data_get_all_single_property_string (GrlData *data,
-                                         GrlKeyID key)
+grl_data_get_all_single_related_keys_string (GrlData *data,
+                                             GrlKeyID key)
 {
   GList *list_strings = NULL;
   GList *list_values;
@@ -862,7 +863,7 @@ grl_data_get_all_single_property_string (GrlData *data,
     return NULL;
   }
 
-  list_values = grl_data_get_all_single_property (data, key);
+  list_values = grl_data_get_all_single_related_keys (data, key);
   for (value = list_values; value; value = g_list_next (value)) {
     string_value = g_value_get_string (value->data);
     if (string_value) {
@@ -876,7 +877,7 @@ grl_data_get_all_single_property_string (GrlData *data,
 }
 
 /**
- * grl_data_remove_property:
+ * grl_data_remove_related_keys:
  * @data: a data
  * @key: a metadata key
  * @index: index of key to be removed, starting at 0
@@ -886,12 +887,12 @@ grl_data_get_all_single_property_string (GrlData *data,
  * from @data.
  **/
 void
-grl_data_remove_property (GrlData *data,
-                          GrlKeyID key,
-                          guint index)
+grl_data_remove_related_keys (GrlData *data,
+                              GrlKeyID key,
+                              guint index)
 {
-  GList *prop_element;
-  GList *prop_list;
+  GList *relkeys_element;
+  GList *relkeys_list;
   GrlKeyID sample_key;
 
   g_return_if_fail (GRL_IS_DATA (data));
@@ -902,46 +903,46 @@ grl_data_remove_property (GrlData *data,
     return;
   }
 
-  prop_list = g_hash_table_lookup (data->priv->data, sample_key);
-  prop_element = g_list_nth (prop_list, index);
-  if (!prop_element) {
+  relkeys_list = g_hash_table_lookup (data->priv->data, sample_key);
+  relkeys_element = g_list_nth (relkeys_list, index);
+  if (!relkeys_element) {
     GRL_WARNING ("%s: index %u out of range", __FUNCTION__, index);
     return;
   }
 
-  g_object_unref (prop_element->data);
-  prop_list = g_list_delete_link (prop_list, prop_element);
-  g_hash_table_insert (data->priv->data, sample_key, prop_list);
+  g_object_unref (relkeys_element->data);
+  relkeys_list = g_list_delete_link (relkeys_list, relkeys_element);
+  g_hash_table_insert (data->priv->data, sample_key, relkeys_list);
 }
 
 /**
- * grl_data_set_property:
+ * grl_data_set_related_keys:
  * @data: a data
- * @prop: a set of related keys
+ * @relkeys: a set of related keys
  * @index: position to be updated, starting at 0
  *
- * Updates the values at position @index in @data with values in @prop.
+ * Updates the values at position @index in @data with values in @relkeys.
  *
- * @data will take ownership of @prop, so do not free it after invoking this
+ * @data will take ownership of @relkeys, so do not free it after invoking this
  * function.
  **/
 void
-grl_data_set_property (GrlData *data,
-                       GrlProperty *prop,
-                       guint index)
+grl_data_set_related_keys (GrlData *data,
+                           GrlRelatedKeys *relkeys,
+                           guint index)
 {
   GList *keys;
-  GList *prop_element;
-  GList *prop_list;
+  GList *relkeys_element;
+  GList *relkeys_list;
   GrlKeyID sample_key;
 
   g_return_if_fail (GRL_IS_DATA (data));
-  g_return_if_fail (GRL_IS_PROPERTY (prop));
+  g_return_if_fail (GRL_IS_RELATED_KEYS (relkeys));
 
-  keys = grl_property_get_keys (prop, TRUE);
+  keys = grl_related_keys_get_keys (relkeys, TRUE);
   if (!keys) {
-    GRL_WARNING ("Trying to set an empty GrlProperty into GrlData");
-    g_object_unref (prop);
+    GRL_WARNING ("Trying to set an empty GrlRelatedKeys into GrlData");
+    g_object_unref (relkeys);
     return;
   }
 
@@ -951,15 +952,15 @@ grl_data_set_property (GrlData *data,
     return;
   }
 
-  prop_list = g_hash_table_lookup (data->priv->data, sample_key);
-  prop_element = g_list_nth (prop_list, index);
-  if (!prop_element) {
+  relkeys_list = g_hash_table_lookup (data->priv->data, sample_key);
+  relkeys_element = g_list_nth (relkeys_list, index);
+  if (!relkeys_element) {
     GRL_WARNING ("%s: index %u out of range", __FUNCTION__, index);
     return;
   }
 
-  g_object_unref (prop_element->data);
-  prop_element->data = prop;
+  g_object_unref (relkeys_element->data);
+  relkeys_element->data = relkeys;
 }
 
 /**
@@ -973,10 +974,10 @@ grl_data_set_property (GrlData *data,
 GrlData *
 grl_data_dup (GrlData *data)
 {
-  GList *dup_prop_list;
+  GList *dup_relkeys_list;
   GList *key;
   GList *keys;
-  GList *prop_list;
+  GList *relkeys_list;
   GrlData *dup_data;
 
   g_return_val_if_fail (GRL_IS_DATA (data), NULL);
@@ -984,16 +985,17 @@ grl_data_dup (GrlData *data)
   dup_data = grl_data_new ();
   keys = g_hash_table_get_keys (data->priv->data);
   for (key = keys; key; key = g_list_next (key)) {
-    dup_prop_list = NULL;
-    prop_list = g_hash_table_lookup (data->priv->data, key->data);
-    while (prop_list) {
-      dup_prop_list = g_list_prepend (dup_prop_list,
-                                      grl_property_dup (prop_list->data));
-      prop_list = g_list_next (prop_list);
+    dup_relkeys_list = NULL;
+    relkeys_list = g_hash_table_lookup (data->priv->data, key->data);
+    while (relkeys_list) {
+      dup_relkeys_list =
+        g_list_prepend (dup_relkeys_list,
+                        grl_related_keys_dup (relkeys_list->data));
+      relkeys_list = g_list_next (relkeys_list);
     }
     g_hash_table_insert (dup_data->priv->data,
                          key->data,
-                         g_list_reverse (prop_list));
+                         g_list_reverse (relkeys_list));
   }
 
   g_list_free (keys);
@@ -1006,11 +1008,11 @@ grl_data_dup (GrlData *data)
  * @data: data to change
  * @overwrite: if data can be overwritten
  *
- * This controls if #grl_data_set will overwrite current value of a property
+ * This controls if #grl_data_set will overwrite the current value of a property
  * with the new one.
  *
- * Set it to %TRUE so old values are overwritten, or %FALSE in other case (default
- * is %FALSE).
+ * Set it to %TRUE so old values are overwritten, or %FALSE in other case
+ * (default is %FALSE).
  *
  * Since: 0.1.4
  **/

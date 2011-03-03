@@ -257,24 +257,24 @@ grl_media_image_get_url_data_nth (GrlMediaImage *image,
                                   gint *width,
                                   gint *height)
 {
-  GrlProperty *prop =
-    grl_data_get_property (GRL_DATA (image), GRL_METADATA_KEY_URL, index);
+  GrlRelatedKeys *relkeys =
+    grl_data_get_related_keys (GRL_DATA (image), GRL_METADATA_KEY_URL, index);
 
-  if (!prop) {
+  if (!relkeys) {
     return NULL;
   }
 
   if (mime) {
-    *mime = (gchar *) grl_property_get_string (prop, GRL_METADATA_KEY_MIME);
+    *mime = (gchar *) grl_related_keys_get_string (relkeys, GRL_METADATA_KEY_MIME);
   }
 
   if (width) {
-    *width = grl_property_get_int (prop, GRL_METADATA_KEY_WIDTH);
+    *width = grl_related_keys_get_int (relkeys, GRL_METADATA_KEY_WIDTH);
   }
 
   if (height) {
-    *height = grl_property_get_int (prop, GRL_METADATA_KEY_HEIGHT);
+    *height = grl_related_keys_get_int (relkeys, GRL_METADATA_KEY_HEIGHT);
   }
 
-  return grl_property_get_string (prop, GRL_METADATA_KEY_URL);
+  return grl_related_keys_get_string (relkeys, GRL_METADATA_KEY_URL);
 }

@@ -32,7 +32,7 @@
 #include <glib-object.h>
 #include <grl-metadata-key.h>
 #include <grl-definitions.h>
-#include <grl-property.h>
+#include <grl-related-keys.h>
 
 G_BEGIN_DECLS
 
@@ -128,7 +128,7 @@ GList *grl_data_get_keys (GrlData *data);
 
 gboolean grl_data_key_is_known (GrlData *data, GrlKeyID key);
 
-void grl_data_add_property (GrlData *data, GrlProperty *prop);
+void grl_data_add_related_keys (GrlData *data, GrlRelatedKeys *relkeys);
 
 void grl_data_add_string (GrlData *data, GrlKeyID key, const gchar *strvalue);
 
@@ -140,15 +140,15 @@ void grl_data_add_binary (GrlData *data, GrlKeyID key, const guint8 *buf, gsize 
 
 guint grl_data_length (GrlData *data, GrlKeyID key);
 
-GrlProperty *grl_data_get_property (GrlData *data, GrlKeyID key, guint index);
+GrlRelatedKeys *grl_data_get_related_keys (GrlData *data, GrlKeyID key, guint index);
 
-GList *grl_data_get_all_single_property (GrlData *data, GrlKeyID key);
+GList *grl_data_get_all_single_related_keys (GrlData *data, GrlKeyID key);
 
-GList *grl_data_get_all_single_property_string (GrlData *data, GrlKeyID key);
+GList *grl_data_get_all_single_related_keys_string (GrlData *data, GrlKeyID key);
 
-void grl_data_remove_property (GrlData *data, GrlKeyID key, guint index);
+void grl_data_remove_related_keys (GrlData *data, GrlKeyID key, guint index);
 
-void grl_data_set_property (GrlData *data, GrlProperty *prop, guint index);
+void grl_data_set_related_keys (GrlData *data, GrlRelatedKeys *relkeys, guint index);
 
 GrlData *grl_data_dup (GrlData *data);
 
