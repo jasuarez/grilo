@@ -50,15 +50,15 @@ struct _GrlDataPrivate {
   gboolean overwrite;
 };
 
-static void grl_data_set_gobject_property (GObject *object,
-                                           guint prop_id,
-                                           const GValue *value,
+static void grl_data_set_property (GObject *object,
+                                   guint prop_id,
+                                   const GValue *value,
                                            GParamSpec *pspec);
 
-static void grl_data_get_gobject_property (GObject *object,
-                                           guint prop_id,
-                                           GValue *value,
-                                           GParamSpec *pspec);
+static void grl_data_get_property (GObject *object,
+                                   guint prop_id,
+                                   GValue *value,
+                                   GParamSpec *pspec);
 
 static void grl_data_finalize (GObject *object);
 static void free_list_values (GrlKeyID key, GList *values, gpointer user_data);
@@ -77,8 +77,8 @@ grl_data_class_init (GrlDataClass *klass)
 {
   GObjectClass *gobject_class = (GObjectClass *)klass;
 
-  gobject_class->set_property = grl_data_set_gobject_property;
-  gobject_class->get_property = grl_data_get_gobject_property;
+  gobject_class->set_property = grl_data_set_property;
+  gobject_class->get_property = grl_data_get_property;
   gobject_class->finalize = grl_data_finalize;
 
   g_type_class_add_private (klass, sizeof (GrlDataPrivate));
@@ -117,10 +117,10 @@ grl_data_finalize (GObject *object)
 }
 
 static void
-grl_data_set_gobject_property (GObject *object,
-                               guint prop_id,
-                               const GValue *value,
-                               GParamSpec *pspec)
+grl_data_set_property (GObject *object,
+                       guint prop_id,
+                       const GValue *value,
+                       GParamSpec *pspec)
 {
   GrlData *self = GRL_DATA (object);
 
@@ -136,10 +136,10 @@ grl_data_set_gobject_property (GObject *object,
 }
 
 static void
-grl_data_get_gobject_property (GObject *object,
-                               guint prop_id,
-                               GValue *value,
-                               GParamSpec *pspec)
+grl_data_get_property (GObject *object,
+                       guint prop_id,
+                       GValue *value,
+                       GParamSpec *pspec)
 {
   GrlData *self = GRL_DATA (object);
 
