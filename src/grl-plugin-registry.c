@@ -819,8 +819,8 @@ grl_plugin_registry_register_metadata_key (GrlPluginRegistry *registry,
  * keys are somehow related.
  *
  * One example of a relation would be the one between the URI of a media
- * resource and its mime-type for example: they are both tied together and one
- * does not make sense without the other.
+ * resource and its mime-type: they are both tied together and one does not make
+ * sense without the other.
  *
  * Relations between keys allow the framework to provide all the data that is
  * somehow related when any of the related keys are requested.
@@ -889,7 +889,7 @@ grl_plugin_registry_lookup_metadata_key (GrlPluginRegistry *registry,
  * @registry: the registry instance
  * @key: a metadata key
  *
- * Look up for a list of keys that have a relation with @key.
+ * Look up the list of keys that have a relation with @key.
  *
  * @key is included in that list.
  *

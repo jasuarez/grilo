@@ -33,7 +33,7 @@
  *
  * For instance, media URI and and mime-type are related keys: mime-type does
  * not make sense if it is not accompanied by an URI. Moreover, for each URI
- * value, it has a correspondance mime-type value.
+ * value, there is a corresponding mime-type value.
  *
  * #GrlRelatedKeys stores related keys and their values in one place, so user
  * can handle them in one shot.
@@ -101,7 +101,8 @@ free_value (GValue *val)
 /**
  * grl_related_keys_new:
  *
- * Creates a new place to store related keys and values.
+ *  Creates a new #GrlRelatedKeys instance that can be used to store related
+ *  keys and their values.
  *
  * Returns: a new object.
  **/
