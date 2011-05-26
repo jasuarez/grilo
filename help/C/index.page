@@ -1,0 +1,11 @@
+<page xmlns="http://projectmallard.org/1.0/"
+	type="guide" style="task"
+      id="index">
+
+  <info>
+    <title>Grilo Framework</title>
+  </info>
+
+  <p>Welcome to this developer's user guide. Here you will find how to write nice applications powered by Grilo.</p>
+
+</page>

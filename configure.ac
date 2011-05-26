@@ -228,6 +228,15 @@ AM_CONDITIONAL(HAVE_VALA, test "x$with_vala" = "xyes")
 GTK_DOC_CHECK([1.10],[--flavour no-tmpl])
 
 # ----------------------------------------------------------
+# GNOME-DOC
+# ----------------------------------------------------------
+
+dnl GNOME_DOC_INIT([0.9.0],,
+dnl         [AC_MSG_WARN([gnome-doc-utils not found: documentation will not be built.])]
+
+GNOME_DOC_INIT
+
+# ----------------------------------------------------------
 # GOBJECT-INTROSPECTION
 # ----------------------------------------------------------
 
@@ -280,6 +289,7 @@ AC_CONFIG_FILES([
   doc/grilo/Makefile
   doc/libs/Makefile
   examples/Makefile
+  help/Makefile
 ])
 
 AC_OUTPUT
