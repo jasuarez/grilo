@@ -84,6 +84,33 @@ GRL_LOG_DOMAIN_STATIC(test_ui_log_domain);
 #define BROWSE_CHUNK_SIZE   75
 #define BROWSE_MAX_COUNT    200
 
+#define INTERFACE                                                       \
+  "<interface>"                                                         \
+  "  <menu id='menubar'>"                                               \
+  "    <submenu>"                                                       \
+  "      <attribute name='label'>Main</attribute>"                      \
+  "      <section>"                                                     \
+  "        <item>"                                                      \
+  "          <attribute name='label'>Shutdown plugins</authorize>"      \
+  "          <attribute name='action'>app.shutdown-plugins</authorize>" \
+  "        </item>"                                                     \
+  "        <item>"                                                      \
+  "          <attribute name='label'>Load all plugins</authorize>"      \
+  "          <attribute name='action'>app.load-plugins</authorize>"     \
+  "        </item>"                                                     \
+  "        <item>"                                                      \
+  "          <attribute name='label'>Changes notification</attribute>"  \
+  "          <attribute name='action'>app.changes-notification</attribute>" \
+  "        </item>"                                                     \
+  "        <item>"                                                      \
+  "          <attribute name='label'>Quit</attribute>"                  \
+  "          <attribute name='action'>"                                 \
+  "        </item>"                                                     \
+  "      </section>"                                                    \
+  "    </submenu>"                                                      \
+  "  </menu>"                                                           \
+  "</interface"
+
 enum {
   OBJECT_TYPE_SOURCE = 0,
   OBJECT_TYPE_CONTAINER,
@@ -180,6 +207,14 @@ typedef struct {
   GAppInfo *totem;
   GAppInfo *mplayer;
 } UriLaunchers;
+
+typedef struct {
+  GtkApplication parent_instance;
+} TestUI;
+
+typedef GtkApplicationClass TestUIClass;
+
+G_DEFINE_TYPE (TestUI, test_ui, GTK_TYPE_APPLICATION)
 
 static UiView *view;
 static UiState *ui_state;
@@ -1840,8 +1875,13 @@ delete_event_cb (GtkWidget *widget,
 static void
 ui_setup (void)
 {
+  GtkBuilder *builder;
+
   view = g_new0 (UiView, 1);
   ui_state = g_new0 (UiState, 1);
+
+  builder = gtk_builder_new ();
+  gtk_builder_add_from_string (INTERFACE, -1, NULL);
 
   /* Main window */
   view->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
@@ -1849,6 +1889,8 @@ ui_setup (void)
   gtk_window_resize (GTK_WINDOW (view->window), 600, 400);
   g_signal_connect (G_OBJECT (view->window), "delete-event",
                     G_CALLBACK (delete_event_cb), NULL);
+
+  menubar = gtk_menu_bar_new ();
 
   GtkActionGroup *actions = gtk_action_group_new ("actions");
   gtk_action_group_add_actions (actions, entries, G_N_ELEMENTS (entries), NULL);
@@ -2364,11 +2406,56 @@ configure_plugins (void)
   set_filesystem_config ();
 }
 
+static void
+test_ui_init (TestUI *app)
+{
+}
+
+static void
+test_ui_startup (GApplication *application)
+{
+  //ui_setup ();
+}
+
+static void
+test_ui_class_init (TestUIClass *class)
+{
+  GApplicationClass *application_class = G_APPLICATION_CLASS (class);
+
+  application_class->startup = test_ui_startup;
+}
+
+TestUI *
+test_ui_new (void)
+{
+  TestUI *test_ui;
+
+  g_set_application_name (WINDOW_TITE);
+
+  test_ui = g_object_new (test_ui_get_type (),
+                          "application-id", "org.gnome.grilo.TestUI",
+                          NULL);
+
+  return test_ui;
+}
+
 int
 main (int argc, gchar *argv[])
 {
-  gtk_init (&argc, &argv);
+  TestUI *test_ui;
+  int status;
+
   grl_init (&argc, &argv);
+
+  test_ui = test_ui_new ();
+
+  status = g_application_run (G_APPLICATION (test_ui), argc, argv);
+
+  g_object_unref (test_ui);
+
+  return status;
+
+  gtk_init (&argc, &argv);
   GRL_LOG_DOMAIN_INIT (test_ui_log_domain, "test-ui");
   launchers_setup ();
   options_setup ();
